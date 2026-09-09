@@ -20,7 +20,7 @@ export const sessionSchema = z.object({
   title: z.string(),
   fileName: z.string(),
   mimeType: z.string(),
-  kind: z.enum(['pdf', 'image', 'video', 'audio', 'doc', 'slides', 'text', 'screen']),
+  kind: z.enum(['pdf', 'image', 'video', 'audio', 'doc', 'slides', 'text', 'web', 'screen']),
   docHash: z.string(),
   pageCount: z.number().int().min(0),
   pageTitles: z.array(z.string()).default([]),

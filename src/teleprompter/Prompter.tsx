@@ -22,6 +22,11 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
   }, [init, sessionId]);
 
   useEffect(() => {
+    // Named so it is obvious which window not to pick when sharing a screen.
+    document.title = 'Teleprompter (private) — PromptDeck';
+  }, []);
+
+  useEffect(() => {
     const onResize = () => setNarrow(window.innerWidth < 420);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);

@@ -10,6 +10,7 @@
 | Images | `.png .jpg .jpeg .webp .gif .svg` | Exact, aspect ratio preserved. Select several and they become an ordered deck. | SVG is drawn as an image, so scripts inside it never run. |
 | Video | `.mp4 .webm` | Native player plus play, pause, seek and speed from the teleprompter | Codec support is the browser's. Chrome and Edge play H.264 MP4 and VP8/VP9 WebM. |
 | Audio | `.mp3 .wav .m4a` | Native player with the same remote controls | As above. |
+| HTML deck | `.html .htm` | Runs live in a sandboxed frame, with Next and Previous driving the deck itself and the app following if you click inside it | Only decks whose slides are ordinary elements are counted. A deck with a sign-in gate or its own overlay needs a click inside the frame first. |
 | Text | `.txt .md` | Rendered cleanly, split on Markdown headings | Markdown is rendered as plain structured text, not full HTML. |
 | Screen share | — | Live preview of a screen or window you pick | Slide controls are inactive: a browser cannot drive another application's slides. |
 

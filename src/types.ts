@@ -1,6 +1,6 @@
 /** Core domain types shared by the main window and the teleprompter popout. */
 
-export type DocKind = 'pdf' | 'image' | 'video' | 'audio' | 'doc' | 'slides' | 'text' | 'screen';
+export type DocKind = 'pdf' | 'image' | 'video' | 'audio' | 'doc' | 'slides' | 'text' | 'web' | 'screen';
 
 /** One navigable unit: a PDF page, a slide, an image, a doc section. */
 export interface Page {
@@ -12,6 +12,7 @@ export interface Page {
     | { type: 'image'; url: string }
     | { type: 'html'; html: string }
     | { type: 'slide'; html: string; width: number; height: number }
+    | { type: 'web'; url: string; index: number }
     | { type: 'text'; title: string; body: string[] }
     | { type: 'media'; url: string; mime: string; audio: boolean }
     | { type: 'screen' };

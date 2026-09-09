@@ -195,6 +195,29 @@ export default function App() {
     }
   };
 
+  /* ---- presenting: the tab fills the screen, nothing else is drawn ---- */
+  const enterPresent = useCallback(() => {
+    // Called straight from a click or key press, which is what the browser
+    // requires to grant full screen.
+    void document.documentElement.requestFullscreen?.().catch(() => undefined);
+    setPresenting(true);
+  }, []);
+
+  const exitPresent = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    setPresenting(false);
+  }, []);
+
+  useEffect(() => {
+    // Leaving full screen by any route leaves presenting too, so the two never
+    // disagree.
+    const onChange = () => {
+      if (!document.fullscreenElement) setPresenting(false);
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
   /* ---- teleprompter popout ---- */
   const openTeleprompter = useCallback(() => {
     const sid = useStore.getState().sessionId;
@@ -232,10 +255,11 @@ export default function App() {
           break;
         case 'p':
         case 'P':
-          setPresenting((v) => !v);
+          if (document.fullscreenElement) exitPresent();
+          else enterPresent();
           break;
         case 'Escape':
-          setPresenting(false);
+          exitPresent();
           break;
         case 'f':
         case 'F':
@@ -253,7 +277,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step, openTeleprompter]);
+  }, [step, openTeleprompter, enterPresent, exitPresent]);
 
   const tripleClick = useTripleClick(openTeleprompter);
   const doc = store.doc;
@@ -296,7 +320,7 @@ export default function App() {
         onFullscreen={() => void stageRef.current?.requestFullscreen?.().catch(() => undefined)}
         onSettings={() => setShowSettings(true)}
         onSessions={() => setShowSessions(true)}
-        onPresent={() => setPresenting(true)}
+        onPresent={enterPresent}
         sharing={sharing}
         zoom={zoom}
         setZoom={setZoom}

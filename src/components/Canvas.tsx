@@ -41,6 +41,8 @@ function PageView({ page, zoom }: { page: Page; zoom: ZoomMode }) {
           style={typeof zoom === 'number' ? { width: `${zoom * 100}%`, maxHeight: 'none' } : undefined}
         />
       );
+    case 'web':
+      return <WebDeck url={page.render.url} index={page.render.index} />;
     case 'slide':
       return <SlidePage html={page.render.html} width={page.render.width} height={page.render.height} zoom={zoom} />;
     case 'html':
@@ -71,6 +73,86 @@ function PageView({ page, zoom }: { page: Page; zoom: ZoomMode }) {
     default:
       return null;
   }
+}
+
+/**
+ * A self-contained HTML deck, shown live in a sandboxed frame. Navigation is
+ * handed to the deck itself: its own go/next/prev functions when it exposes
+ * them, arrow keys otherwise. If the presenter clicks inside the deck and moves
+ * it directly, the app notices and keeps the teleprompter in step.
+ */
+function WebDeck({ url, index }: { url: string; index: number }) {
+  const ref = useRef<HTMLIFrameElement>(null);
+  const applied = useRef(0);
+  const goto = useStore((s) => s.goto);
+
+  useEffect(() => {
+    const win = ref.current?.contentWindow as (Window & Record<string, unknown>) | null | undefined;
+    if (!win) return;
+    if (index === applied.current) return;
+    const delta = index - applied.current;
+    applied.current = index;
+
+    const press = (key: string, times: number) => {
+      for (let i = 0; i < times; i++) {
+        try {
+          const Ctor = win.KeyboardEvent as typeof KeyboardEvent;
+          win.document.dispatchEvent(new Ctor('keydown', { key, bubbles: true }));
+        } catch {
+          /* the deck may not be ready yet */
+        }
+      }
+    };
+
+    try {
+      const go = win.go as ((i: number) => void) | undefined;
+      const next = win.next as (() => void) | undefined;
+      const prev = win.prev as (() => void) | undefined;
+      if (typeof go === 'function') go(index);
+      else if (delta > 0 && typeof next === 'function') for (let i = 0; i < delta; i++) next();
+      else if (delta < 0 && typeof prev === 'function') for (let i = 0; i < -delta; i++) prev();
+      else press(delta > 0 ? 'ArrowRight' : 'ArrowLeft', Math.abs(delta));
+    } catch {
+      press(delta > 0 ? 'ArrowRight' : 'ArrowLeft', Math.abs(delta));
+    }
+  }, [index]);
+
+  // The deck may also be driven from inside: watch where it actually is.
+  useEffect(() => {
+    const read = () => {
+      const win = ref.current?.contentWindow as (Window & Record<string, unknown>) | null | undefined;
+      if (!win) return null;
+      try {
+        const cur = win.cur;
+        if (typeof cur === 'number' && Number.isFinite(cur)) return cur;
+        const slides = [...win.document.querySelectorAll('[data-slide], section.slide, .slide, .step, section')];
+        const active = slides.findIndex((el) => /(^|\s)(active|current|is-active|present)(\s|$)/.test(el.className));
+        return active >= 0 ? active : null;
+      } catch {
+        return null;
+      }
+    };
+    const timer = setInterval(() => {
+      const where = read();
+      if (where === null || where === applied.current) return;
+      applied.current = where;
+      goto(where);
+    }, 350);
+    return () => clearInterval(timer);
+  }, [goto]);
+
+  return (
+    <iframe
+      ref={ref}
+      src={url}
+      title="Presentation"
+      data-no-triple
+      // The file is the presenter's own, opened deliberately, and it needs its
+      // own origin to run and to be driven. It is still framed and sandboxed.
+      sandbox="allow-scripts allow-same-origin"
+      className="h-full w-full border-0 bg-white"
+    />
+  );
 }
 
 /** A rebuilt PPTX slide: drawn at its real size, then scaled to the stage. */

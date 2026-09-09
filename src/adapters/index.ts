@@ -6,6 +6,7 @@ const pdfMod = () => import('./pdf');
 const docxMod = () => import('./docx');
 const pptxMod = () => import('./pptx');
 const simpleMod = () => import('./simple');
+const htmlMod = () => import('./html');
 
 export interface ImportResult {
   doc: LoadedDocument;
@@ -20,11 +21,12 @@ export const SUPPORTED = [
   { label: 'Images', ext: '.png .jpg .jpeg .webp .gif .svg', fidelity: 'Exact' },
   { label: 'Video', ext: '.mp4 .webm', fidelity: 'Exact' },
   { label: 'Audio', ext: '.mp3 .wav .m4a', fidelity: 'Exact' },
+  { label: 'HTML deck', ext: '.html .htm', fidelity: 'Runs live in a sandboxed frame' },
   { label: 'Text', ext: '.txt .md', fidelity: 'Exact' },
 ];
 
 export const ACCEPT =
-  '.pdf,.pptx,.ppt,.docx,.txt,.md,.markdown,.png,.jpg,.jpeg,.webp,.gif,.svg,.mp4,.webm,.mp3,.wav,.m4a,image/*,video/*,audio/*';
+  '.pdf,.pptx,.ppt,.docx,.html,.htm,.txt,.md,.markdown,.png,.jpg,.jpeg,.webp,.gif,.svg,.mp4,.webm,.mp3,.wav,.m4a,image/*,video/*,audio/*';
 
 export const MAX_BYTES = 512 * 1024 * 1024;
 
@@ -48,6 +50,7 @@ export async function importFiles(
     return { doc: r, notes: r.notes };
   }
   if (e === 'docx') return { doc: await (await docxMod()).loadDocx(file) };
+  if (e === 'html' || e === 'htm') return { doc: await (await htmlMod()).loadHtml(file) };
   if (e === 'doc') throw new Error('Legacy .doc cannot be read in a browser. Save it as .docx or PDF first.');
   if (['txt', 'md', 'markdown'].includes(e)) return { doc: await (await simpleMod()).loadText(file) };
   if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(e)) return { doc: (await simpleMod()).loadImage(file) };

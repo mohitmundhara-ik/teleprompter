@@ -64,7 +64,8 @@ No environment variables are needed, so there is no `.env.example`.
 4. Press `Present`, or `P`. The slide fills the tab and nothing else is drawn:
    no toolbar, no notes panel, no controls, no messages, not even a cursor. In
    Zoom or Meet choose `Share`, then this browser tab, and the audience sees the
-   slide alone.
+   slide alone. Present asks the browser for real full screen, so the tab fills
+   the monitor and there is no address bar or tab strip on screen either.
 5. Drive it from the teleprompter window, which is a separate window and never
    part of the shared tab, or with the arrow keys. `Escape` leaves presenting.
 6. `Next` and `Prev` work in either window. Both stay in step.
