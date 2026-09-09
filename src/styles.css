@@ -1,0 +1,111 @@
+@import 'tailwindcss';
+
+/* PromptDeck design tokens. Dark is designed first, light is a separate ramp
+   rather than an inversion. One accent, neutral surfaces, hairline borders. */
+:root,
+:root[data-theme='dark'] {
+  --bg: #0b0e12;
+  --surface: #12171d;
+  --surface-2: #1a212a;
+  --surface-3: #232c37;
+  --line: #2b3540;
+  --ink: #e7edf4;
+  --ink-2: #9aa8b6;
+  --ink-3: #6b7987;
+  --accent: #4c9ffe;
+  --accent-ink: #05121f;
+  --ok: #3ecf8e;
+  --warn: #f0b429;
+  --danger: #ff5f56;
+  --shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+}
+:root[data-theme='light'] {
+  --bg: #eef0f3;
+  --surface: #ffffff;
+  --surface-2: #f4f6f8;
+  --surface-3: #e7ebef;
+  --line: #d2d8de;
+  --ink: #10151b;
+  --ink-2: #56616c;
+  --ink-3: #7d8894;
+  --accent: #0b64d4;
+  --accent-ink: #ffffff;
+  --ok: #148f5b;
+  --warn: #a76a00;
+  --danger: #c8322a;
+  --shadow: 0 18px 44px rgb(15 23 32 / 0.14);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+* {
+  box-sizing: border-box;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+::selection {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.pd-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.pd-scroll::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 6px;
+}
+
+/* Converted document HTML */
+.doc-html {
+  color: var(--ink);
+  line-height: 1.62;
+  max-width: 72ch;
+}
+.doc-html h1,
+.doc-html h2,
+.doc-html h3 {
+  line-height: 1.25;
+  margin: 1.2em 0 0.5em;
+  font-weight: 600;
+}
+.doc-html h1 { font-size: 1.7rem; }
+.doc-html h2 { font-size: 1.35rem; }
+.doc-html h3 { font-size: 1.12rem; }
+.doc-html p { margin: 0 0 0.85em; }
+.doc-html ul, .doc-html ol { margin: 0 0 0.9em 1.3em; }
+.doc-html li { margin-bottom: 0.3em; }
+.doc-html table { border-collapse: collapse; margin: 0.6em 0 1em; width: 100%; }
+.doc-html td, .doc-html th { border: 1px solid var(--line); padding: 6px 9px; text-align: left; }
+.doc-html a { color: var(--accent); }
+.doc-html img { max-width: 100%; height: auto; }
+
+/* Teleprompter reading surface */
+.reader-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-variant-ligatures: none;
+}
