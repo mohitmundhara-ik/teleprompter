@@ -70,7 +70,8 @@ interface State {
 
 let toastSeq = 1;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
-let pendingWrite: (() => Promise<void>) | null = null;
+/** One pending write per target, so a burst of edits does not drop any of them. */
+const pendingWrites = new Map<string, () => Promise<void>>();
 
 export const useStore = create<State>((set, get) => ({
   role: 'main',
@@ -178,7 +179,7 @@ export const useStore = create<State>((set, get) => ({
     const rev = get().scriptRev + 1;
     set({ script: text, scriptRev: rev, dirty: true });
     get().bus?.post({ t: 'script', text, rev });
-    persist(set, get, async (sid) => saveScript(sid, text, rev));
+    persist(set, get, 'script', async (sid) => saveScript(sid, text, rev));
   },
 
   setNote(index, text) {
@@ -189,7 +190,7 @@ export const useStore = create<State>((set, get) => ({
       dirty: true,
     }));
     get().bus?.post({ t: 'note', index, text, rev });
-    persist(set, get, async (sid) => saveNote(sid, index, text, rev));
+    persist(set, get, `note:${index}`, async (sid) => saveNote(sid, index, text, rev));
   },
 
   setDisplay(patch) {
@@ -259,38 +260,44 @@ export const useStore = create<State>((set, get) => ({
 function persist(
   set: (partial: Partial<State>) => void,
   get: () => State,
+  key: string,
   write: (sessionId: string) => Promise<void>,
 ) {
   const sid = get().sessionId;
   if (!sid) return;
   set({ save: 'saving' });
-  if (saveTimer) clearTimeout(saveTimer);
-  pendingWrite = async () => {
+  pendingWrites.set(key, async () => {
     try {
       await write(sid);
-      set({ save: 'saved', dirty: false });
     } catch (err) {
       set({ save: 'error' });
       get().toast(
         err instanceof QuotaError ? err.message : 'Autosave failed. Your text is still on screen: export it from the notes panel.',
         'error',
       );
+      throw err;
     }
-  };
-  saveTimer = setTimeout(() => {
-    const run = pendingWrite;
-    pendingWrite = null;
-    void run?.();
-  }, 400);
+  });
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => void runPendingWrites(set), 400);
 }
 
-/** Write any debounced edit immediately. Used when a window is closing. */
-export function flushPendingSave() {
+async function runPendingWrites(set: (partial: Partial<State>) => void) {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = null;
-  const run = pendingWrite;
-  pendingWrite = null;
-  void run?.();
+  const jobs = [...pendingWrites.values()];
+  pendingWrites.clear();
+  if (!jobs.length) return;
+  const results = await Promise.allSettled(jobs.map((j) => j()));
+  if (results.every((r) => r.status === 'fulfilled')) set({ save: 'saved', dirty: false });
+}
+
+/**
+ * Write every debounced edit immediately: when a window is closing, and after
+ * a bulk change such as mapping a whole talk track onto its pages.
+ */
+export function flushPendingSave(): Promise<void> {
+  return runPendingWrites((partial) => useStore.setState(partial));
 }
 
 function applyRemote(p: Payload, set: (partial: Partial<State> | ((s: State) => Partial<State>)) => void, get: () => State) {

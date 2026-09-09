@@ -10,6 +10,7 @@ interface Props {
   onScreenShare(): void;
   onPrompter(): void;
   onFullscreen(): void;
+  onPresent(): void;
   onSettings(): void;
   onSessions(): void;
   sharing: boolean;
@@ -32,7 +33,7 @@ export function Toolbar(p: Props) {
   const navDisabled = count <= 1;
 
   return (
-    <header className="flex h-12 shrink-0 flex-wrap items-center gap-1.5 border-b border-[var(--line)] bg-[var(--surface)] px-3">
+    <header className="flex min-h-12 shrink-0 flex-wrap items-center gap-1.5 border-b border-[var(--line)] bg-[var(--surface)] px-3 py-1.5">
       <span className="mr-1 flex items-center gap-2 text-[13px] font-semibold tracking-tight">
         <span className="h-2 w-2 rounded-full" style={{ background: connected ? 'var(--ok)' : 'var(--line)' }} aria-hidden />
         PromptDeck
@@ -74,7 +75,8 @@ export function Toolbar(p: Props) {
         <option value="1.5">150%</option>
         <option value="2">200%</option>
       </select>
-      <Button onClick={p.onFullscreen} title="Full screen">Full screen</Button>
+      <Button onClick={p.onFullscreen} title="Full screen on this monitor (F)">Full screen</Button>
+      <Button onClick={p.onPresent} title="Fill this tab with the slide, ready to share (P)">Present</Button>
       <span className="flex-1" />
       <span className="text-[12px] tabular-nums" style={{ color: save === 'error' ? 'var(--danger)' : 'var(--ink-3)' }}>
         {save === 'saving' ? 'Saving…' : save === 'saved' ? 'Saved' : save === 'error' ? 'Save failed' : session ? 'Ready' : ''}

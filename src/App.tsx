@@ -7,15 +7,16 @@ import { Sessions } from './components/Sessions';
 import { Settings } from './components/Settings';
 import { Toasts } from './components/Toasts';
 import { ProgressOverlay } from './components/ProgressOverlay';
+import { PresentBar } from './components/PresentBar';
 import { Button } from './components/ui';
-import { useStore } from './state/store';
+import { flushPendingSave, useStore } from './state/store';
 import { ACCEPT, importFiles } from './adapters';
 import { getFile, getSession, putFile, putSession } from './db/db';
 import { adoptNotesFromHash } from './lib/transfer';
 import { hashFile, uid } from './lib/id';
 import { converterUrl } from './lib/converter';
 import { openPrompter, prompterUrl } from './lib/popout';
-import { HINT_KEY, LAST_SESSION_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
+import { HINT_KEY, LAST_SESSION_KEY, PRESENT_TIP_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
 import { isTyping } from './lib/shortcuts';
 import { useTripleClick } from './lib/tripleClick';
 import type { LoadedDocument, SessionRecord } from './types';
@@ -31,6 +32,9 @@ export default function App() {
   const [hint, setHint] = useState(() => safeGet(HINT_KEY) !== '1');
   const [sharing, setSharing] = useState(false);
   const [notesOpen, setNotesOpen] = useState(true);
+  const [presenting, setPresenting] = useState(false);
+  const [chrome, setChrome] = useState(true);
+  const [presentTip, setPresentTip] = useState(() => safeGet(PRESENT_TIP_KEY) !== '1');
   const fileInput = useRef<HTMLInputElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const bootRef = useRef(false);
@@ -66,6 +70,28 @@ export default function App() {
   }, [init, attachDoc, toast]);
 
   useEffect(() => applyTheme(theme), [theme]);
+
+  /* ---- presenting: hide everything, reveal controls only on movement ---- */
+  useEffect(() => {
+    if (!presenting) {
+      setChrome(true);
+      return;
+    }
+    let timer: ReturnType<typeof setTimeout>;
+    const wake = () => {
+      setChrome(true);
+      clearTimeout(timer);
+      timer = setTimeout(() => setChrome(false), 2000);
+    };
+    wake();
+    window.addEventListener('mousemove', wake);
+    window.addEventListener('mousedown', wake);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('mousemove', wake);
+      window.removeEventListener('mousedown', wake);
+    };
+  }, [presenting]);
 
   /* ---- importing ---- */
   const handleFiles = useCallback(
@@ -124,7 +150,10 @@ export default function App() {
         await useStore.getState().reloadTexts();
         toast('Notes from the last time you opened this file were restored.');
       }
-      if (notes?.size) for (const [i, text] of notes) setNote(i, text);
+      if (notes?.size) {
+        for (const [i, text] of notes) setNote(i, text);
+        await flushPendingSave();
+      }
     } catch (err) {
       toast(
         err instanceof Error ? err.message : 'This file is open, but it could not be saved for next time.',
@@ -225,6 +254,13 @@ export default function App() {
         case 'T':
           openTeleprompter();
           break;
+        case 'p':
+        case 'P':
+          setPresenting((v) => !v);
+          break;
+        case 'Escape':
+          setPresenting(false);
+          break;
         case 'f':
         case 'F':
           void stageRef.current?.requestFullscreen?.().catch(() => undefined);
@@ -247,6 +283,40 @@ export default function App() {
   const doc = store.doc;
   const page = doc?.pages[store.index] ?? null;
 
+  if (presenting) {
+    return (
+      <div
+        {...tripleClick}
+        data-testid="stage"
+        className="fixed inset-0 z-10 flex flex-col bg-black"
+        style={{ cursor: chrome ? 'default' : 'none' }}
+      >
+        {doc ? (
+          <Canvas page={page} zoom="fit" bare />
+        ) : (
+          <p className="m-auto max-w-[46ch] text-center text-[14px] text-[var(--ink-2)]">
+            Nothing is loaded yet. Press Escape to go back and add a file.
+          </p>
+        )}
+        <PresentBar
+          visible={chrome}
+          tip={presentTip}
+          onDismissTip={() => {
+            setPresentTip(false);
+            safeSet(PRESENT_TIP_KEY, '1');
+          }}
+          index={store.index}
+          count={doc?.pages.length ?? 0}
+          onPrev={() => step(-1)}
+          onNext={() => step(1)}
+          onPrompter={openTeleprompter}
+          onExit={() => setPresenting(false)}
+        />
+        <Toasts />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col">
       <Toolbar
@@ -261,6 +331,7 @@ export default function App() {
         onFullscreen={() => void stageRef.current?.requestFullscreen?.().catch(() => undefined)}
         onSettings={() => setShowSettings(true)}
         onSessions={() => setShowSessions(true)}
+        onPresent={() => setPresenting(true)}
         sharing={sharing}
         zoom={zoom}
         setZoom={setZoom}

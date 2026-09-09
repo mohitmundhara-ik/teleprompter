@@ -25,6 +25,7 @@ export const PALETTES: Record<DisplaySettings['palette'], { bg: string; fg: stri
 
 export const THEME_KEY = 'promptdeck.theme';
 export const HINT_KEY = 'promptdeck.hintDismissed';
+export const PRESENT_TIP_KEY = 'promptdeck.presentTipDismissed';
 export const LAST_SESSION_KEY = 'promptdeck.lastSession';
 
 export function safeGet(key: string): string | null {

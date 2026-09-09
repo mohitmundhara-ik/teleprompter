@@ -94,8 +94,10 @@ the defaults instead of breaking the window.
 File identity is a SHA-256 of the first 8 MB plus the byte size. Reopening the
 same deck finds the previous session by hash and reattaches its notes.
 
-Writes are debounced by 400 ms and reported in the toolbar as
-`Saving… / Saved / Save failed`. A quota failure is surfaced as an error toast
+Writes are debounced by 400 ms, queued one per target so a burst of edits never
+drops any of them, and reported in the toolbar as `Saving… / Saved / Save
+failed`. Bulk changes, such as mapping a whole talk track across fifty pages,
+flush straight through instead of waiting for the debounce. A quota failure is surfaced as an error toast
 that tells the presenter to export the script, and never clears the text.
 
 ## Rendering
@@ -121,11 +123,18 @@ that tells the presenter to export the script, and never clears the text.
 
 ## Script following
 
-`parseScriptBlocks` splits a script into blocks and keeps the slide number each
-one carries, from `--- Slide 4 ---`, `## Slide 4`, `[Slide 4]` and similar
-lines. The teleprompter uses it two ways: a page with no notes of its own shows
-its marked section of the script, and the running script view scrolls itself to
-the current slide and dims the rest. The `Follow` toggle appears only when a
+`parseScriptBlocks` splits a script into blocks and keeps the pages each one
+covers. The marker has to be the whole line, so a sentence that mentions slide 4
+is left alone, and it accepts what presenters actually write: `SLIDE 4 - TITLE`,
+`Slide 4:`, `--- Slide 4 ---`, `## Slide 4`, `[Slide 4]`, `Page 4`, ranges such
+as `Slides 5-28` and `Slides 5 to 28`, and `Before slide 1` / `After slide 28`,
+which both belong to the page they name. Separator rules such as `=======` are
+dropped rather than read out. Text above the first marker becomes page one when
+the script starts at a later slide, and is treated as a header belonging to no
+page when page one has its own marker. The teleprompter uses it two ways: a page with no notes of its own shows its
+marked section of the script, and the running script view scrolls itself to the
+current slide and dims the rest. Importing a labelled script writes the mapping
+into real per-page notes. The `Follow` toggle appears only when a
 script actually carries markers, and its state persists with the other display
 settings.
 
@@ -137,6 +146,17 @@ form fields and media, and inside selectable document text where triple-click is
 the browser's own select-paragraph gesture. On a slide, where a triple click
 selects nothing meaningful, the accidental selection is cleared and the
 teleprompter opens.
+
+## Present mode
+
+`Present` replaces the whole layout with the slide on black, filling the tab.
+Nothing else is in the DOM, so sharing the tab in a meeting shares the slide and
+nothing else: no toolbar, no notes, and no browser chrome, since a tab share
+never includes it. A control bar fades in on mouse movement and back out after
+two seconds of stillness, and the cursor hides with it. Everything else is
+driven from the teleprompter window, which is a separate window and therefore
+never part of the shared tab. This is distinct from `F`, which asks the browser
+for real full screen on the current monitor.
 
 ## Screen share
 

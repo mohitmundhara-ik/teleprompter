@@ -12,8 +12,9 @@ Ten minutes, before you rely on this in a real session. Chrome or Edge.
 ## Notes and saving
 6. Type notes on three different pages. The toolbar goes `Saving…` then `Saved`.
 7. Reload the page. The deck reopens and each page still has its own notes.
-8. Paste a long script into Full script with `--- Slide 2 ---` markers, press
-   Split by markers, confirm the pieces land on the right pages.
+8. Import a talk track labelled `SLIDE 2 - TITLE`, or paste one and press
+   Split by markers. Check three pages: each holds its own section only, with no
+   header, no separator rules and nothing from other slides.
 9. Export `.json`, then Sessions → Delete, then import the `.json` back.
 
 ## Teleprompter
@@ -31,6 +32,13 @@ Ten minutes, before you rely on this in a real session. Chrome or Edge.
 19. Start auto-scroll with Space, change speed, press R to jump back to the top.
 20. Close the main window. The teleprompter says `Main presentation disconnected`
     and still shows your script.
+
+## Presenting
+25. Press Present. The slide fills the tab, nothing else is on screen.
+26. Move the mouse: the control bar appears. Hold still for two seconds: it and the cursor disappear.
+27. Share this tab in Zoom or Meet and confirm the audience sees only the slide.
+28. Change pages from the teleprompter and confirm the shared tab follows.
+29. Press Escape and confirm the normal layout returns on the page you ended on.
 
 ## Screen share
 21. Press Share screen, pick a window, confirm the live preview and the note that

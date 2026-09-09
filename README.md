@@ -41,18 +41,34 @@ No environment variables are needed, so there is no `.env.example`.
 ## Quick start
 
 1. Drop a PDF, PPTX, DOCX, image, video, audio, TXT or MD file on the window.
-2. Type your talk track in the right panel. `Slide notes` is per page,
-   `Full script` is one running script. Mark a long script with lines such as
-   `--- Slide 2 ---` and the teleprompter picks the numbers up on its own: each
-   page shows its own section, and the running script scrolls itself to the
-   slide you are on. `Split by markers` turns those sections into real per-page
-   notes if you would rather edit them separately.
+2. Type your talk track in the right panel, or press `Import` and load a `.txt`
+   or `.md` you already wrote. Any of these labels is recognised, on a line of
+   its own:
+
+   ```
+   Slide 4              SLIDE 4 - TITLE        Slide 4: title
+   --- Slide 4 ---      ## Slide 4             [Slide 4]
+   Slides 5-28          Slides 5 to 28         Page 4
+   Before slide 1       After slide 28
+   ```
+
+   An imported script is mapped onto the pages straight away: each page gets
+   only its own section, ranges fill every page they cover, `before slide 4`
+   and `after slide 4` join page 4, and separator rules such as `=======` and
+   any header above the first marker are dropped. `Slide notes` shows one page
+   at a time, `Full script` shows the whole thing and scrolls itself to the
+   slide you are on.
 3. Triple-click the slide. You can do this before loading anything, so you can
    write the script first and bring the deck in later. The teleprompter opens in its own window: drag it to
    a second monitor, or park it under your webcam and size it down to a strip.
-4. Share your screen in your meeting tool and pick the PromptDeck window, not
-   the teleprompter window.
-5. Use `Next` and `Prev` in either window. Both stay in step.
+4. Press `Present`, or `P`. The slide fills the tab: no toolbar, no notes
+   panel, no address bar. In Zoom or Meet choose `Share` then this browser tab,
+   and the audience sees the slide and nothing else.
+5. Drive it from the teleprompter window, which is never part of the shared
+   tab. Moving the mouse over the slide brings up a small control bar for two
+   seconds if you prefer clicking; keep still and it disappears again. `Escape`
+   leaves presenting.
+6. `Next` and `Prev` work in either window. Both stay in step.
 
 ## Scripts
 

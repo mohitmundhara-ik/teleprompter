@@ -1,0 +1,373 @@
+LOOP ENGINEERING MASTERCLASS
+MOHIT'S CONVERSATIONAL, SLIDE-BY-SLIDE TALK TRACK
+
+Use this as a speaking guide, not a script to memorise. Keep the meaning, look at the audience, and speak in your own rhythm.
+
+YOUR FLOW
+
+Slides 1-4: You open, introduce Interview Kickstart, and bring in Jeevendra.
+Slides 5-28: Jeevendra presents.
+Slides 29-37: You return for the program conversation.
+Slides 38-50: Jeevendra continues.
+End: You take it back and close.
+
+
+============================================================
+BEFORE SLIDE 1 - OPENING
+============================================================
+
+Hi, everyone. Good evening.
+
+We'll just give it another 20 or 30 seconds. I can see people are still joining.
+
+Meanwhile, can you quickly type a yes in the chat if you can hear me and see the screen clearly?
+
+[Pause and respond naturally.]
+
+Perfect. Thank you.
+
+Okay, let's get started.
+
+I'm Mohit. I work with the AI and engineering category at Interview Kickstart, and I'll be hosting the session today.
+
+One quick request before we begin. Use the chat for quick reactions, but put your technical questions in the Q&A section. That way, they won't get lost as the chat keeps moving.
+
+
+============================================================
+SLIDE 1 - LOOP ENGINEERING
+============================================================
+
+So today's session is about something most of us don't really think about.
+
+We ask an AI model to do something. It gives us an answer. And usually, we stop there.
+
+But what if that answer has to go into a real product or reach a real customer?
+
+Who checks whether it is actually right?
+
+If it is wrong, what tells the model what went wrong?
+
+Does it try again? And how many times should it try before it stops?
+
+That entire part after the first answer is what today's session is about. That is loop engineering.
+
+Jeevendra is going to take us through four different kinds of loops and show how this works through live examples as well.
+
+Just quickly, how many of you already use an AI coding tool regularly? Claude Code, Cursor, Copilot, Codex, anything. Just drop the name in the chat.
+
+[Read two or three responses.]
+
+Nice. Then you will be able to connect a lot of today's discussion to things you have already seen while using these tools.
+
+
+============================================================
+SLIDE 2 - A QUICK INTRODUCTION TO INTERVIEW KICKSTART
+============================================================
+
+Before I bring Jeevendra in, just 45 seconds on Interview Kickstart for those who are joining one of our sessions for the first time.
+
+There are a lot of numbers on this slide, so I am not going to make you sit through every one of them.
+
+The short version is that we have been working with technical professionals for more than 12 years now. We have had over 27,000 enrolments, and we work with more than 700 instructors from leading technology companies.
+
+We also have 18 different role-based curricula. So a backend engineer, a data professional, and an engineering manager do not get pushed through exactly the same journey.
+
+That is really the idea behind IK. Keep the learning close to what people are building in the industry and what companies are actually hiring for.
+
+
+============================================================
+SLIDE 3 - THE PEOPLE BEHIND THE PROGRAMS
+============================================================
+
+And these are just some of the people behind our programs.
+
+I won't go through all the names. You can always take a screenshot if you want to look them up later.
+
+What matters is that the sessions and curricula are built with engineers, hiring managers, and interviewers who work close to these problems every day.
+
+So you are not only learning how something works in theory. You also hear where it breaks, what trade-offs teams make, and what interviewers expect you to understand.
+
+And today's instructor is one of those practitioners.
+
+
+============================================================
+SLIDE 4 - JEEVENDRA SINGH
+============================================================
+
+Let me quickly introduce Jeevendra Singh.
+
+Jeevendra has been working as a software engineer since 2015. He has worked with Ericsson, SAP, Q2, and he has now been with Microsoft for more than four years.
+
+He has worked as a full-stack developer and an integration architect, and his current focus is Agentic AI development.
+
+He has built intelligent API platforms and copilots using Generative AI, RAG, and agent orchestration. He has also trained more than 2,000 learners across Agentic AI, full-stack development, DSA, and system design.
+
+So please make the most of the session and keep your questions coming in.
+
+Jeevendra, welcome. Thank you for taking the session today.
+
+Over to you. You can take us through the agenda and then get us into the first loop.
+
+
+============================================================
+SLIDES 5-28 - JEEVENDRA PRESENTS
+============================================================
+
+[Jeevendra takes this section. Return immediately after Slide 28.]
+
+
+============================================================
+AFTER SLIDE 28 - BRIDGE BACK TO YOUR SECTION
+============================================================
+
+Thanks, Jeevendra.
+
+Guys, I am just going to borrow the screen for the next few minutes, and then I will hand it straight back to Jeevendra.
+
+What we just saw is actually very important from a career point of view as well.
+
+Building something once and seeing it run is one level. Being able to check it, improve it, and make it dependable is a very different level of capability.
+
+And this is where many people get confused. They know they need to learn AI, but they do not know how deep they need to go, where they should start, or which role would even make sense for them.
+
+So let me quickly make that part simpler.
+
+
+============================================================
+SLIDE 29 - WHAT DO WE MEAN BY A 10X PROFESSIONAL?
+============================================================
+
+Now, 10x professional sounds a little dramatic. I know.
+
+We do not mean that you should work ten times more or write ten times more code.
+
+We mean that AI gives you more leverage. You can take on a larger problem, move faster, and own more of the outcome.
+
+But that only happens when you know what to do beyond the first AI-generated answer.
+
+Can you test it? Can you improve it? Can you put it into production? Can you explain the trade-offs to another engineer or even to a customer?
+
+That is where the real value starts showing up.
+
+
+============================================================
+SLIDE 30 - WHY PEOPLE GET STUCK
+============================================================
+
+Now tell me honestly. Which one of these have you thought at some point?
+
+One - AI is moving too fast. I will never be able to catch up.
+
+Two - there is simply too much. I do not know where to begin.
+
+Three - my role is quite specialised, so maybe I am safe for now.
+
+Or four - if I move into AI, I may have to start my career again from a lower level.
+
+Just type 1, 2, 3, or 4 in the chat. No explanation needed.
+
+[Pause and react.]
+
+Okay, so clearly a lot of people are thinking about the same things.
+
+The good news is that you do not have to throw away the experience you already have. Your experience is actually your starting point.
+
+The question is simply: what new AI capability should you add to it?
+
+
+============================================================
+SLIDE 31 - FINDING YOUR PLACE ON THE AI CURVE
+============================================================
+
+This is the easiest way to look at it.
+
+The first stage is being comfortable with LLMs. Most of us have already started doing this.
+
+The second stage is using copilots properly in our daily work. This is mainly about productivity.
+
+The third stage is when you begin building GenAI applications and agents. Today's session sits largely in this area. Once the agent starts taking actions, questions around loops, verification, and guardrails become important.
+
+Then you have modern ML and deep ML. Those are more specialised paths.
+
+Everyone in technology should probably understand the first two stages. But everyone does not need to become a deep ML engineer.
+
+Your right starting point depends on what you do today and what you want to do next.
+
+
+============================================================
+SLIDE 32 - WHICH PATH SOUNDS LIKE YOU?
+============================================================
+
+Now, where do our programs fit into this?
+
+There are two pathways on the screen.
+
+If you are thinking, "Mohit, I understand that AI is important, but honestly, I am still not sure where I fit," then look at the path on the left.
+
+That is Transformative GenAI and Agentic AI along with Interview Lab.
+
+It takes you from GenAI foundations into agents and multi-agent systems. Then the interview preparation gets mapped to the role you want to target. There are 18 role tracks, so this can work differently for a software engineer, an EM, a PM, a TPM, a data professional, or someone from SRE or DevOps.
+
+You also build an enterprise capstone, or you can bring a suitable project of your own.
+
+Now, if you are already clear and your response is, "I specifically want to move towards a Forward Deployed AI Engineering role," then look at the path on the right.
+
+That path is much more focused. It combines AI engineering with the actual FDE work of understanding a customer problem, designing the solution, building it, deploying it, and then driving adoption.
+
+It runs across 23 weeks and includes two capstones that simulate that complete journey.
+
+So the left side gives you broader AI capability plus role-specific interview preparation. The right side is for a focused transition into FDE.
+
+And whichever path you look at, today's lesson remains relevant. Getting a model to produce something is only the beginning. The real work is making that system reliable enough for people to use.
+
+
+============================================================
+SLIDE 33 - INTERVIEW PREPARATION BY ROLE
+============================================================
+
+Once you choose a target role, the preparation also has to change.
+
+A backend engineer will not face the same interview as an engineering manager. A data engineer, SRE, test engineer, or TPM will each be evaluated differently.
+
+That is why you see so many tracks here.
+
+We do not expect you to prepare for everything on this slide. We help you pick the relevant track and focus on the coding, system design, domain knowledge, or leadership areas that matter for that role.
+
+
+============================================================
+SLIDE 34 - WHAT THE PREPARATION LOOKS LIKE
+============================================================
+
+Then comes the practice part.
+
+The Interview Lab includes DSA, system design, and preparation for your specific domain.
+
+You also get 15 live mock interviews. These are proper simulated interviews, followed by written and verbal feedback.
+
+The idea is that you should discover your weak patterns during practice, not during the actual interview.
+
+The career services side helps with your LinkedIn profile, resume, behavioural interviews, and offer negotiation as well.
+
+So it covers both parts: becoming capable for the role and then being able to present that capability properly during the hiring process.
+
+
+============================================================
+SLIDE 35 - PLACEMENT ASSISTANCE
+============================================================
+
+Now, one quick point on placement assistance because I want to be very clear about what it means.
+
+We have more than 200 hiring partners in India. Opportunities can also come through the alumni network and relevant instructor referrals.
+
+But referrals are based on your performance and your fit for the role. It is not an automatic placement guarantee.
+
+The team helps open the right doors once you are ready. You still have to clear the interview process.
+
+
+============================================================
+SLIDE 36 - THE EASIEST WAY TO CHOOSE
+============================================================
+
+So if you forget all the program details, just remember this.
+
+If you are still figuring out where AI fits into your career, start by exploring Transformative GenAI and Agentic AI with Interview Lab. That is shown here as a three-month plus three-month journey.
+
+If you are specifically targeting Forward Deployed AI Engineering and want the hands-on engineering plus customer problem-solving path, explore the FDE program. That runs for roughly five and a half months.
+
+You do not need to decide this on your own. The program advisor can look at your experience, coding comfort, and target role and help you understand which one fits better.
+
+
+============================================================
+SLIDE 37 - FEES AND NEXT STEP
+============================================================
+
+Now coming to the fee.
+
+The Transformative GenAI and Agentic AI path ranges from Rs. 1.5 lakh to Rs. 2.8 lakh, depending on the pathway and interview track you choose.
+
+The Forward Deployed AI Engineering program is Rs. 2.75 lakh.
+
+There are EMI options and eligible scholarships available. You can also see a 50% refund mentioned on the slide. That comes with specific eligibility conditions, so please ask the program advisor to explain the exact terms before you make a decision.
+
+And honestly, do not decide just because you enjoyed one masterclass or because one role sounds exciting tonight.
+
+Take a short fitment conversation first. Explain your background, what you have been working on, and what role you want. Let the advisor tell you which path makes sense, or if neither of them is right for you at this point.
+
+Team, please drop the 15-minute 1:1 booking link in the chat.
+
+You can use that after the session if you want someone to map the options to your profile.
+
+Booking link: https://cal.com/gagandeep-k-mljpdb/15min
+
+
+============================================================
+AFTER SLIDE 37 - HAND BACK TO JEEVENDRA
+============================================================
+
+Okay, that is all from me on the program side.
+
+Let's come back to loop engineering.
+
+Jeevendra, we stopped after the verification loop. The next question is what happens when this system starts running and nobody is actively sitting there watching it.
+
+So over to you for the event-driven loop.
+
+
+============================================================
+SLIDES 38-50 - JEEVENDRA PRESENTS
+============================================================
+
+[Jeevendra takes this section. Return at the end to close the webinar.]
+
+
+============================================================
+FINAL CLOSE - IF YOU HAVE TIME FOR Q&A
+============================================================
+
+Thanks, Jeevendra.
+
+That was a lot to take in, but I think the central idea is actually quite simple.
+
+Getting the first answer from a model is becoming easy. Engineering what happens after that answer is where reliability comes from.
+
+Jeevendra, before we close, do you want to quickly look at the Q&A and pick up two or three questions that we have not answered yet?
+
+[After the questions.]
+
+Perfect. Thank you, Jeevendra.
+
+And thank you, everyone, for staying with us and for asking so many questions.
+
+[Say this only if the recording is confirmed.]
+
+We will share the recording and the follow-up details with you after the session.
+
+If you want to understand which program or role fits your background, the 15-minute 1:1 link is in the chat. You can use that to speak with the team directly.
+
+Thank you again, everyone. Have a great evening, and we will hopefully see you in another masterclass very soon.
+
+
+============================================================
+FINAL CLOSE - IF YOU ARE ALREADY RUNNING LATE
+============================================================
+
+Thanks, Jeevendra. That was genuinely useful.
+
+If you remember just one line from today, remember this: getting an answer from the model is easy. Engineering what happens next is the real work.
+
+Thank you, everyone, for staying back. The 15-minute 1:1 link is in the chat if you want to discuss your profile with the team.
+
+[If confirmed: We will also share the recording and follow-up details.]
+
+Have a great evening.
+
+
+============================================================
+QUICK DECK CHECKS BEFORE GOING LIVE
+============================================================
+
+1. Slide 32 says "Three paths," but only two paths are shown. Change it to "Two paths."
+2. Slide 33 repeats the number 8, and its title overlaps the logo.
+3. Slide 5 breaks the word "Agenda" into two lines.
+4. The existing presenter notes on Slides 32, 34, and 35 belong to an older session. Do not use them.
+5. Slide 37 shows "50% refund*" without displaying the conditions. Keep the exact eligibility terms ready if someone asks.

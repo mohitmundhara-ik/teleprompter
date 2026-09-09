@@ -3,7 +3,7 @@ import { useStore } from '../state/store';
 import { PALETTES } from '../lib/prefs';
 import { useAutoScroll } from './useAutoScroll';
 import { isTyping } from '../lib/shortcuts';
-import { parseScriptBlocks } from '../lib/format';
+import { blockCoversSlide, parseScriptBlocks, scriptForSlide } from '../lib/format';
 import { Toasts } from '../components/Toasts';
 
 export default function Prompter({ sessionId }: { sessionId: string }) {
@@ -31,10 +31,7 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
   // pasted talk track lines itself up with the deck without being split first.
   const blocks = useMemo(() => parseScriptBlocks(script), [script]);
   const marked = useMemo(() => blocks.some((b) => b.slide !== null), [blocks]);
-  const blockForSlide = useMemo(
-    () => blocks.filter((b) => b.slide === index).map((b) => b.text).join('\n\n').trim(),
-    [blocks, index],
-  );
+  const blockForSlide = useMemo(() => scriptForSlide(blocks, index), [blocks, index]);
   // In notes mode a page with no notes of its own falls back to its marked
   // section of the script rather than showing nothing.
   const text = display.source === 'script' ? script : (notes[index] || blockForSlide || '');
@@ -48,7 +45,13 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
       return;
     }
     // Jump the script to the section that belongs to the current slide.
-    const el = scrollRef.current?.querySelector<HTMLElement>(`[data-slide="${index}"]`);
+    const el =
+      scrollRef.current?.querySelector<HTMLElement>(`[data-slide="${index}"]`) ??
+      [...(scrollRef.current?.querySelectorAll<HTMLElement>('[data-slide]') ?? [])].find((n) => {
+        const start = Number(n.dataset.slide);
+        const end = Number(n.dataset.slideEnd ?? n.dataset.slide);
+        return index >= start && index <= end;
+      });
     if (el && scrollRef.current) scrollRef.current.scrollTop = Math.max(0, el.offsetTop - 12);
     else restart();
   }, [index, display.source, following, script]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -242,14 +245,18 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
                     <div
                       key={i}
                       data-slide={b.slide ?? undefined}
+                      data-slide-end={b.slideEnd ?? undefined}
                       style={{
-                        opacity: !following || b.slide === null || b.slide === index ? 1 : 0.42,
+                        opacity: !following || b.slide === null || blockCoversSlide(b, index) ? 1 : 0.42,
                         paddingBottom: '0.7em',
                       }}
                     >
                       {b.slide !== null ? (
                         <div style={{ fontSize: '0.42em', opacity: 0.7, paddingBottom: '0.2em' }}>
-                          Slide {b.slide + 1}
+                          {b.slideEnd !== null && b.slideEnd !== b.slide
+                            ? `Slides ${b.slide + 1}-${b.slideEnd + 1}`
+                            : `Slide ${b.slide + 1}`}
+                          {b.title ? ` · ${b.title}` : ''}
                         </div>
                       ) : null}
                       {b.text}

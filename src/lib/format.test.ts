@@ -16,10 +16,9 @@ describe('splitScriptByMarkers', () => {
     expect(map.get(2)).toBe('gamma');
   });
 
-  it('returns a single block when no markers exist', () => {
+  it('maps nothing when a script carries no markers at all', () => {
     const map = splitScriptByMarkers('just one paragraph\nand another');
-    expect(map.size).toBe(1);
-    expect(map.get(0)).toContain('another');
+    expect(map.size).toBe(0);
   });
 
   it('keeps blank sections out of the map', () => {
@@ -48,7 +47,8 @@ describe('formatting helpers', () => {
 describe('parseScriptBlocks', () => {
   it('keeps the slide number with each block', () => {
     const blocks = parseScriptBlocks('intro\n--- Slide 2 ---\nsecond\n--- Slide 5 ---\nfifth');
-    expect(blocks.map((b) => b.slide)).toEqual([null, 1, 4]);
+    // The lead-in becomes page one, since the script itself starts at slide 2.
+    expect(blocks.map((b) => b.slide)).toEqual([0, 1, 4]);
     expect(blocks[1].text).toBe('second');
     expect(blocks[2].text).toBe('fifth');
   });
@@ -56,6 +56,11 @@ describe('parseScriptBlocks', () => {
   it('reports whether a script carries markers at all', () => {
     expect(hasSlideMarkers('plain talk track with no markers')).toBe(false);
     expect(hasSlideMarkers('opening\n## Slide 3\nlater')).toBe(true);
+  });
+
+  it('drops a header that sits above a slide 1 marker', () => {
+    const map = splitScriptByMarkers('Talk track notes for me\n--- Slide 1 ---\nreal opening');
+    expect(map.get(0)).toBe('real opening');
   });
 
   it('keeps an empty section so its slide still resolves', () => {

@@ -8,16 +8,20 @@ export type ZoomMode = 'fit' | 'width' | number;
 interface Props {
   page: Page | null;
   zoom: ZoomMode;
+  /** Presenting: no padding, no app background, slide edge to edge. */
+  bare?: boolean;
 }
 
-export function Canvas({ page, zoom }: Props) {
+export function Canvas({ page, zoom, bare = false }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
       ref={wrapRef}
       data-testid="canvas"
-      className="pd-scroll relative flex min-h-0 flex-1 items-center justify-center overflow-auto bg-[var(--bg)] p-4"
+      className={`pd-scroll relative flex min-h-0 flex-1 items-center justify-center overflow-auto ${
+        bare ? 'bg-black p-0' : 'bg-[var(--bg)] p-4'
+      }`}
     >
       {page ? <PageView page={page} zoom={zoom} /> : null}
     </div>

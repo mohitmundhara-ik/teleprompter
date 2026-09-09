@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useStore } from '../state/store';
+import { flushPendingSave, useStore } from '../state/store';
 import { Button, Divider, Panel } from './ui';
-import { splitScriptByMarkers } from '../lib/format';
+import { hasSlideMarkers, splitScriptByMarkers } from '../lib/format';
 import { exportSession, importSessionJson } from '../lib/transfer';
 
 export function NotesPanel() {
@@ -24,15 +24,16 @@ export function NotesPanel() {
 
   const write = (text: string) => (tab === 'script' ? setScript(text) : setNote(index, text));
 
-  const split = () => {
+  const split = async () => {
     const map = splitScriptByMarkers(script);
     if (!map.size) {
       toast('No slide markers found. Add lines such as "--- Slide 2 ---" to split the script.', 'warn');
       return;
     }
     for (const [i, text] of map) setNote(i, text);
+    await flushPendingSave();
     setTab('notes');
-    toast(`Script split across ${map.size} pages.`);
+    toast(`Script mapped onto ${map.size} pages.`);
   };
 
   return (
@@ -86,8 +87,19 @@ export function NotesPanel() {
                   const n = await importSessionJson(f);
                   toast(`Imported ${n} pages of notes. Reopen the session to see them.`);
                 } else {
-                  write(await f.text());
-                  toast('Script imported.');
+                  const text = await f.text();
+                  write(text);
+                  // A talk track that labels its slides is mapped straight onto
+                  // the pages, so each page shows only what belongs to it.
+                  if (hasSlideMarkers(text)) {
+                    const map = splitScriptByMarkers(text);
+                    for (const [i, body] of map) setNote(i, body);
+                    await flushPendingSave();
+                    setTab('notes');
+                    toast(`Script imported and mapped onto ${map.size} pages.`);
+                  } else {
+                    toast('Script imported. Add lines such as "Slide 2" to map it onto pages.');
+                  }
                 }
               } catch (err) {
                 toast(err instanceof Error ? err.message : 'That file could not be imported.', 'error');
@@ -98,7 +110,7 @@ export function NotesPanel() {
         <Button size="sm" onClick={() => session && void exportSession(session, 'txt')}>Export .txt</Button>
         <Button size="sm" onClick={() => session && void exportSession(session, 'json')}>Export .json</Button>
         <Divider />
-        <Button size="sm" onClick={split} title="Split the full script into per-page notes on Slide markers">
+        <Button size="sm" onClick={() => void split()} title="Split the full script into per-page notes on Slide markers">
           Split by markers
         </Button>
         <span className="flex-1" />

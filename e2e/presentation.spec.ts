@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { join } from 'node:path';
-import { FIXTURES, loadFixture, openApp, typeNote } from './helpers';
+import { FIXTURES, loadFixture, openApp, openPrompter, typeNote } from './helpers';
 
 test('notes stay attached to the right page across a reload', async ({ page }) => {
   await openApp(page);
@@ -61,4 +61,68 @@ test('arrow keys navigate but never while typing', async ({ page }) => {
   await page.keyboard.press('ArrowLeft');
   await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
   await expect(editor).toHaveValue('abc');
+});
+
+test('present mode fills the tab with the slide and nothing else', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+
+  await page.getByRole('button', { name: 'Present' }).click();
+  // Nothing that would appear in a shared tab except the slide.
+  await expect(page.getByRole('button', { name: 'Upload' })).toHaveCount(0);
+  await expect(page.getByTestId('notes-editor')).toHaveCount(0);
+  await expect(page.locator('canvas')).toBeVisible();
+
+  const stage = await page.getByTestId('stage').boundingBox();
+  const view = page.viewportSize()!;
+  expect(stage!.width).toBe(view.width);
+  expect(stage!.height).toBe(view.height);
+
+  // Controls are there when the presenter moves, and go away when still.
+  await page.mouse.move(300, 300);
+  await expect(page.getByTestId('present-bar')).toHaveCSS('opacity', '1');
+  await expect(page.getByTestId('present-bar')).toHaveCSS('opacity', '0', { timeout: 6000 });
+
+  await page.mouse.move(320, 320);
+  await page.getByRole('button', { name: 'Next', exact: false }).click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Upload' })).toBeVisible();
+  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
+});
+
+test('the teleprompter still drives a presenting tab', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+  const popup = await openPrompter(page);
+
+  await page.getByRole('button', { name: 'Present' }).click();
+  await popup.getByTestId('prompter-next').click();
+  await expect(popup.getByTestId('prompter-count')).toHaveText('2 / 3');
+  await page.mouse.move(400, 400);
+  await expect(page.getByTestId('present-bar')).toContainText('2 / 3');
+});
+
+test('a labelled talk track maps onto the pages and survives a reload', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+
+  await page.setInputFiles('input[accept=".txt,.md,.markdown,.json"]', join(FIXTURES, 'talk-track.txt'));
+  await expect(page.getByRole('status')).toContainText(/mapped onto \d+ pages/);
+
+  // Page one holds its own body and none of the file's header or other slides.
+  const editor = page.getByTestId('notes-editor');
+  await expect(editor).toContainText('That is loop engineering');
+  await expect(editor).not.toContainText('YOUR FLOW');
+  await expect(editor).not.toContainText('A QUICK INTRODUCTION');
+  await expect(editor).not.toContainText('====');
+
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(editor).toContainText('Interview Kickstart');
+  await expect(editor).not.toContainText('That is loop engineering');
+
+  await page.reload();
+  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3', { timeout: 15000 });
+  await expect(page.getByTestId('notes-editor')).toContainText('Interview Kickstart');
+  await page.getByRole('button', { name: 'Previous' }).click();
+  await expect(page.getByTestId('notes-editor')).toContainText('That is loop engineering');
 });
