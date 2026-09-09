@@ -67,10 +67,14 @@ No environment variables are needed, so there is no `.env.example`.
 ## Optional PowerPoint converter
 
 A `.pptx` file contains shapes, text and theme rules, not pictures of slides.
-No browser can reproduce the original design from it. PromptDeck therefore
-imports slide text and speaker notes locally, and tells you so.
+PromptDeck rebuilds each slide from that shape tree in the browser: text with
+its sizes and colours, pictures with their crops, fills, outlines, groups,
+tables and the artwork inherited from the layout and master. Speaker notes come
+across with it. This covers ordinary decks well, but it is a reconstruction:
+gradients, shadows, charts, SmartArt and custom geometry are left out rather
+than drawn wrongly.
 
-For exact rendering, run the bundled converter yourself:
+For an exact match, run the bundled converter yourself:
 
 ```bash
 npm run convert-server          # needs LibreOffice on the machine, listens on :8787

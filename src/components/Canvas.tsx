@@ -59,6 +59,8 @@ function PageView({ page, zoom }: { page: Page; zoom: ZoomMode }) {
           style={typeof zoom === 'number' ? { width: `${zoom * 100}%`, maxHeight: 'none' } : undefined}
         />
       );
+    case 'slide':
+      return <SlidePage html={page.render.html} width={page.render.width} height={page.render.height} zoom={zoom} />;
     case 'html':
       return (
         <div className="h-full w-full overflow-auto pd-scroll">
@@ -87,6 +89,41 @@ function PageView({ page, zoom }: { page: Page; zoom: ZoomMode }) {
     default:
       return null;
   }
+}
+
+/** A rebuilt PPTX slide: drawn at its real size, then scaled to the stage. */
+function SlidePage({ html, width, height, zoom }: { html: string; width: number; height: number; zoom: ZoomMode }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const fit = () => {
+      const box = boxRef.current?.getBoundingClientRect();
+      if (!box) return;
+      if (typeof zoom === 'number') setScale(zoom);
+      else if (zoom === 'width') setScale(box.width / width);
+      else setScale(Math.min(box.width / width, box.height / height));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (boxRef.current) ro.observe(boxRef.current);
+    return () => ro.disconnect();
+  }, [width, height, zoom]);
+
+  return (
+    <div ref={boxRef} className="flex h-full w-full items-center justify-center overflow-auto">
+      <div
+        style={{ width: width * scale, height: height * scale, flex: '0 0 auto' }}
+        className="shadow-[var(--shadow)]"
+      >
+        <div
+          data-selectable
+          style={{ width, height, transform: `scale(${scale})`, transformOrigin: 'top left' }}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function PdfPage({ pageNumber, zoom }: { pageNumber: number; zoom: ZoomMode }) {

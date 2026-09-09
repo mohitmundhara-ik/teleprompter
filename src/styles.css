@@ -103,6 +103,18 @@ body {
 .doc-html a { color: var(--accent); }
 .doc-html img { max-width: 100%; height: auto; }
 
+/* Rebuilt PPTX slides. Absolute layout in the deck's own coordinate space. */
+.pptx-slide {
+  position: relative;
+  overflow: hidden;
+  color: #111;
+  font-family: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.22;
+}
+.pptx-slide p {
+  margin: 0 0 0.28em;
+}
+
 /* Teleprompter reading surface */
 .reader-text {
   white-space: pre-wrap;

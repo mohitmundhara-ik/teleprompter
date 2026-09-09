@@ -3,7 +3,7 @@
 | Format | Extensions | What you get | Limits |
 | --- | --- | --- | --- |
 | PDF | `.pdf` | Exact rendering, one page per slide, any page count | Password-protected files are rejected with a message. Very large files take a moment on first load. |
-| PowerPoint | `.pptx` | Slide text and speaker notes, in order. With a converter configured: exact rendering via PDF. | Without the converter there is no layout, no images and no theme. This is a format limitation, not a rendering shortcut. |
+| PowerPoint | `.pptx` | Slides drawn in the browser from their shape tree: text with its sizes, weights and colours, pictures with their crops, solid fills, outlines, rounded shapes, groups, tables, and the artwork the master and layout contribute. Speaker notes are imported with the deck. With a converter configured: exact rendering via PDF. | Gradients, shadows, charts, SmartArt, custom geometry, rotation of text and animations are not drawn. Fonts fall back to what the machine has. Close, not pixel-exact. |
 | PowerPoint (legacy) | `.ppt` | Not supported | Binary format. Save as `.pptx` or export to PDF. Reported clearly on import. |
 | Word | `.docx` | Headings, paragraphs, lists, tables and inline images, paginated by heading | Page breaks will not match Word exactly. Headers, footers and complex floats are dropped. |
 | Word (legacy) | `.doc` | Not supported | Same as `.ppt`: save as `.docx` or PDF. |

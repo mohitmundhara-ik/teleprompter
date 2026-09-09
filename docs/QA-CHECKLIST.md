@@ -5,7 +5,7 @@ Ten minutes, before you rely on this in a real session. Chrome or Edge.
 ## Import and render
 1. Drop a multi-page PDF. Pages appear, the counter reads `1 / n`, nothing is cropped.
 2. Switch zoom between Fit screen, Fit width and 200%. The page redraws sharply each time.
-3. Load a `.pptx`. Slides appear as text, the notice about PowerPoint fidelity appears once.
+3. Load a `.pptx`. Slides are drawn with their layout, pictures and colours, and the notice about reconstruction fidelity appears once. Compare two or three slides against PowerPoint.
 4. Load a video. It plays with native controls.
 5. Load a junk file renamed `.pdf`. You get a readable error and your notes are untouched.
 

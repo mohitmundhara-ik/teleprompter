@@ -3,6 +3,7 @@ import type { LoadedDocument, Page } from '../types';
 
 
 import { converterUrl } from '../lib/converter';
+import { renderPptx } from './pptxVisual';
 
 function paragraphs(xml: string): string[] {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
@@ -56,20 +57,38 @@ export async function loadPptx(
     .sort((a, b) => Number(a.match(/\d+/)![0]) - Number(b.match(/\d+/)![0]));
   if (!slideFiles.length) throw new Error('No slides were found inside this file.');
 
-  const pages: Page[] = [];
+  // Slide text and speaker notes first: these are always available.
+  const texts: string[][] = [];
   const notes = new Map<number, string>();
   for (const name of slideFiles) {
     const num = Number(name.match(/\d+/)![0]);
-    const body = paragraphs(await zip.file(name)!.async('string'));
+    texts.push(paragraphs(await zip.file(name)!.async('string')));
     const notesFile = zip.file(`ppt/notesSlides/notesSlide${num}.xml`);
     if (notesFile) {
       const n = paragraphs(await notesFile.async('string')).filter((t) => t !== String(num));
-      if (n.length) notes.set(pages.length, n.join('\n'));
+      if (n.length) notes.set(texts.length - 1, n.join('\n'));
     }
-    const title = body[0] || `Slide ${num}`;
-    pages.push({ index: pages.length, title, render: { type: 'text', title, body: body.slice(1) } });
-    opts.onProgress?.(Math.round((pages.length / slideFiles.length) * 100), 'Reading slides');
+    opts.onProgress?.(Math.round((texts.length / slideFiles.length) * 60), 'Reading slides');
   }
+
+  // Then draw the slides from their shape tree.
+  opts.onProgress?.(70, 'Drawing slides');
+  let drawn: Awaited<ReturnType<typeof renderPptx>> = [];
+  try {
+    drawn = await renderPptx(zip);
+  } catch {
+    drawn = [];
+  }
+
+  const usable = drawn.length === texts.length;
+  const pages: Page[] = texts.map((body, i) => {
+    const title = drawn[i]?.title || body[0] || `Slide ${i + 1}`;
+    if (usable) {
+      const v = drawn[i];
+      return { index: i, title, render: { type: 'slide', html: v.html, width: v.width, height: v.height } };
+    }
+    return { index: i, title, render: { type: 'text', title, body: body.slice(1) } };
+  });
 
   return {
     kind: 'slides',
@@ -77,7 +96,9 @@ export async function loadPptx(
     pages,
     notes,
     notices: [
-      'PowerPoint files store shapes and theme rules, not slide images, so this view shows slide text without the original design. Export the deck to PDF for exact visuals, or configure a converter in Settings.',
+      usable
+        ? 'PowerPoint slides are rebuilt in the browser from their shapes, so text, pictures, fills and tables appear but gradients, charts and effects do not. Use a PDF export or the converter for an exact match.'
+        : 'These slides could not be drawn, so their text is shown instead. Export the deck to PDF for exact visuals, or configure a converter in Settings.',
     ],
   };
 }

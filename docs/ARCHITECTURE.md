@@ -10,7 +10,8 @@ src/
   adapters/             one module per file format, loaded on demand
     index.ts            registry: file -> LoadedDocument, plus the supported matrix
     pdf.ts pdfRuntime.ts  PDF.js document handling and page rendering
-    docx.ts pptx.ts simple.ts
+    pptx.ts pptxVisual.ts  PPTX package reading, and the slide renderer
+    docx.ts simple.ts
   components/           Toolbar, Canvas, NotesPanel, DropZone, Sessions, Settings, ...
   teleprompter/         Prompter.tsx and the auto-scroll hook
   state/store.ts        one Zustand store per window, plus remote message handling
@@ -108,9 +109,15 @@ that tells the presenter to export the script, and never clears the text.
 - DOCX: mammoth converts to HTML locally, the allowlist sanitizer strips
   anything active, then the document is split into pages on top-level headings
   with a size cap for heading-free documents.
-- PPTX: JSZip reads `ppt/slides/slideN.xml` and `ppt/notesSlides/notesSlideN.xml`
-  for slide text and speaker notes. With a converter configured, the file is
-  converted to PDF and rendered through the PDF path instead.
+- PPTX: JSZip reads the package, `pptxVisual.ts` walks each slide's shape tree
+  and rebuilds it as absolutely positioned HTML at the deck's real pixel size,
+  which the canvas then scales to fit. It resolves theme colours, placeholder
+  geometry inherited from the layout and master, master and layout artwork
+  drawn behind the slide, nested groups with their child coordinate spaces,
+  picture relationships and `srcRect` crops, tables, and text run formatting.
+  Slide text and speaker notes are read separately, so a deck whose shapes
+  cannot be drawn still falls back to readable text pages. With a converter
+  configured, the file is converted to PDF and rendered through the PDF path.
 
 ## Triple-click
 

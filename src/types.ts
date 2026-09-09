@@ -11,6 +11,7 @@ export interface Page {
     | { type: 'pdf'; pageNumber: number }
     | { type: 'image'; url: string }
     | { type: 'html'; html: string }
+    | { type: 'slide'; html: string; width: number; height: number }
     | { type: 'text'; title: string; body: string[] }
     | { type: 'media'; url: string; mime: string; audio: boolean }
     | { type: 'screen' };

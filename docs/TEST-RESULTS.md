@@ -38,7 +38,7 @@ Reproduce with `npm run lint && npm run typecheck && npm test && npm run e2e`.
 10. Closing the main window puts the popout into `Main presentation disconnected` with the script still readable.
 
 `e2e/formats.spec.ts`
-11. A `.pptx` loads all slides in order with their text and the fidelity notice.
+11. A `.pptx` loads all slides in order, drawn as slides at the deck's aspect ratio, with their text and the fidelity notice.
 12. Video play, pause and seek are driven from the teleprompter.
 13. A cancelled screen share reports the reason instead of failing silently.
 
@@ -68,3 +68,8 @@ Reproduce with `npm run lint && npm run typecheck && npm test && npm run e2e`.
   cancellation path is tested; the successful path is in the manual checklist.
 - The optional converter is verified by hand: a 50-slide `.pptx` posted to
   `server/convert.mjs` returned a valid 50-page PDF.
+- PPTX rendering fidelity is verified by eye against a real 50-slide deck,
+  comparing browser output with the same slides converted by LibreOffice.
+  Titles, body text, cards, accent bars, nested rounded shapes, tables, logos
+  and master artwork match closely; colours and positions line up. Checking
+  this automatically would need visual diffing, which is not set up.

@@ -6,14 +6,19 @@ test('a pptx loads every slide in order with its text', async ({ page }) => {
   await openApp(page);
   await page.setInputFiles('input[type=file]', join(FIXTURES, 'three-slides.pptx'));
   await expect(page.getByTestId('page-indicator')).toHaveText('1 / 3');
+  await expect(page.locator('.pptx-slide')).toBeVisible();
   await expect(page.getByTestId('canvas')).toContainText('Opening slide title');
-  await expect(page.getByRole('status')).toContainText(/PowerPoint files store shapes/);
+  await expect(page.getByRole('status')).toContainText(/rebuilt in the browser/);
 
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByTestId('canvas')).toContainText('Middle slide title');
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByTestId('canvas')).toContainText('Closing slide title');
   await expect(page.getByTestId('page-indicator')).toHaveText('3 / 3');
+
+  // Slides are drawn at the deck's own dimensions, not reflowed as text.
+  const box = await page.locator('.pptx-slide').boundingBox();
+  expect(box!.width / box!.height).toBeGreaterThan(1.2);
 });
 
 test('video plays and pauses from the teleprompter', async ({ page }) => {
