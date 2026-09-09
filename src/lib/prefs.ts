@@ -11,6 +11,7 @@ export const DEFAULT_DISPLAY: DisplaySettings = {
   scrollSpeed: 40,
   guideOffset: 0,
   controlsHidden: false,
+  followSlides: true,
   source: 'notes',
 };
 

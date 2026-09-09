@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bytes, splitScriptByMarkers, timeAgo } from './format';
+import { bytes, hasSlideMarkers, parseScriptBlocks, splitScriptByMarkers, timeAgo } from './format';
 
 describe('splitScriptByMarkers', () => {
   it('splits on --- Slide N --- markers', () => {
@@ -42,5 +42,25 @@ describe('formatting helpers', () => {
     expect(timeAgo(now - 120_000, now)).toBe('2 min ago');
     expect(timeAgo(now - 3 * 3600_000, now)).toBe('3 hr ago');
     expect(timeAgo(now - 25 * 3600_000, now)).toBe('yesterday');
+  });
+});
+
+describe('parseScriptBlocks', () => {
+  it('keeps the slide number with each block', () => {
+    const blocks = parseScriptBlocks('intro\n--- Slide 2 ---\nsecond\n--- Slide 5 ---\nfifth');
+    expect(blocks.map((b) => b.slide)).toEqual([null, 1, 4]);
+    expect(blocks[1].text).toBe('second');
+    expect(blocks[2].text).toBe('fifth');
+  });
+
+  it('reports whether a script carries markers at all', () => {
+    expect(hasSlideMarkers('plain talk track with no markers')).toBe(false);
+    expect(hasSlideMarkers('opening\n## Slide 3\nlater')).toBe(true);
+  });
+
+  it('keeps an empty section so its slide still resolves', () => {
+    const blocks = parseScriptBlocks('--- Slide 1 ---\n\n--- Slide 2 ---\nreal');
+    expect(blocks.find((b) => b.slide === 0)?.text).toBe('');
+    expect(blocks.find((b) => b.slide === 1)?.text).toBe('real');
   });
 });

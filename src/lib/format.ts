@@ -43,3 +43,40 @@ export function splitScriptByMarkers(text: string): Map<number, string> {
   flush();
   return out;
 }
+
+export interface ScriptBlock {
+  /** Zero-based page this block belongs to, or null for text before any marker. */
+  slide: number | null;
+  text: string;
+}
+
+/**
+ * Split a script into blocks while keeping the slide number each one carries.
+ * Used by the teleprompter to follow the deck without the presenter having to
+ * split the script by hand.
+ */
+export function parseScriptBlocks(text: string): ScriptBlock[] {
+  const re = /^\s*(?:-{2,}|#{1,6}|\[|\u25c6|\*{2,})?\s*(?:slide|page)\s*#?\s*(\d+)\s*(?:\]|-{2,}|\*{2,})?\s*$/i;
+  const blocks: ScriptBlock[] = [];
+  let slide: number | null = null;
+  let buf: string[] = [];
+  const flush = () => {
+    const body = buf.join('\n').trim();
+    if (body || slide !== null) blocks.push({ slide, text: body });
+    buf = [];
+  };
+  for (const line of text.split('\n')) {
+    const m = line.match(re);
+    if (m) {
+      flush();
+      slide = Math.max(0, parseInt(m[1], 10) - 1);
+    } else {
+      buf.push(line);
+    }
+  }
+  flush();
+  return blocks;
+}
+
+/** True when a script carries slide markers the teleprompter can follow. */
+export const hasSlideMarkers = (text: string) => parseScriptBlocks(text).some((b) => b.slide !== null);

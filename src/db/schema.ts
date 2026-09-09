@@ -11,6 +11,7 @@ export const displaySettingsSchema = z.object({
   scrollSpeed: z.number().min(2).max(400),
   guideOffset: z.number().min(0).max(90),
   controlsHidden: z.boolean(),
+  followSlides: z.boolean().default(true),
   source: z.enum(['notes', 'script']),
 });
 

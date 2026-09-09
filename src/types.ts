@@ -77,6 +77,8 @@ export interface DisplaySettings {
   scrollSpeed: number;     // px per second
   guideOffset: number;     // percent from top, 0 disables
   controlsHidden: boolean;
+  /** Keep the script aligned with the slide the main window is showing. */
+  followSlides: boolean;
   source: 'notes' | 'script';
 }
 

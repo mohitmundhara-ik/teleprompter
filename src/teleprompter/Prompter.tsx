@@ -3,6 +3,7 @@ import { useStore } from '../state/store';
 import { PALETTES } from '../lib/prefs';
 import { useAutoScroll } from './useAutoScroll';
 import { isTyping } from '../lib/shortcuts';
+import { parseScriptBlocks } from '../lib/format';
 import { Toasts } from '../components/Toasts';
 
 export default function Prompter({ sessionId }: { sessionId: string }) {
@@ -26,13 +27,31 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const text = display.source === 'script' ? script : (notes[index] ?? '');
+  // Slide markers such as "--- Slide 4 ---" are detected in the script, so one
+  // pasted talk track lines itself up with the deck without being split first.
+  const blocks = useMemo(() => parseScriptBlocks(script), [script]);
+  const marked = useMemo(() => blocks.some((b) => b.slide !== null), [blocks]);
+  const blockForSlide = useMemo(
+    () => blocks.filter((b) => b.slide === index).map((b) => b.text).join('\n\n').trim(),
+    [blocks, index],
+  );
+  // In notes mode a page with no notes of its own falls back to its marked
+  // section of the script rather than showing nothing.
+  const text = display.source === 'script' ? script : (notes[index] || blockForSlide || '');
+  const following = display.source === 'script' && marked && display.followSlides;
   const { ref: scrollRef, running, setRunning, restart } = useAutoScroll(display.scrollSpeed);
 
   useEffect(() => {
-    restart();
     setRunning(false);
-  }, [index, display.source]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!following) {
+      restart();
+      return;
+    }
+    // Jump the script to the section that belongs to the current slide.
+    const el = scrollRef.current?.querySelector<HTMLElement>(`[data-slide="${index}"]`);
+    if (el && scrollRef.current) scrollRef.current.scrollTop = Math.max(0, el.offsetTop - 12);
+    else restart();
+  }, [index, display.source, following, script]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const palette = PALETTES[display.palette];
   const pageCount = meta.pageCount;
@@ -108,6 +127,15 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
           <Tool onClick={() => setEditing(!editing)} active={editing}>{editing ? 'Done' : 'Edit'}</Tool>
           <Tool onClick={() => setRunning(!running)} active={running}>{running ? 'Pause' : 'Scroll'}</Tool>
           <Tool onClick={restart}>Top</Tool>
+          {marked ? (
+            <Tool
+              onClick={() => setDisplay({ followSlides: !display.followSlides })}
+              active={display.followSlides}
+              title="Keep the script on the current slide"
+            >
+              Follow
+            </Tool>
+          ) : null}
           <input
             type="range" min={2} max={200} value={display.scrollSpeed}
             onChange={(e) => setDisplay({ scrollSpeed: Number(e.target.value) })}
@@ -209,7 +237,25 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
                 transform,
               }}
             >
-              {text || 'No script for this page yet. Press Edit and type what you want to say.'}
+              {display.source === 'script' && marked
+                ? blocks.map((b, i) => (
+                    <div
+                      key={i}
+                      data-slide={b.slide ?? undefined}
+                      style={{
+                        opacity: !following || b.slide === null || b.slide === index ? 1 : 0.42,
+                        paddingBottom: '0.7em',
+                      }}
+                    >
+                      {b.slide !== null ? (
+                        <div style={{ fontSize: '0.42em', opacity: 0.7, paddingBottom: '0.2em' }}>
+                          Slide {b.slide + 1}
+                        </div>
+                      ) : null}
+                      {b.text}
+                    </div>
+                  ))
+                : text || 'No script for this page yet. Press Edit and type what you want to say.'}
             </div>
             <div style={{ height: '55vh' }} aria-hidden />
           </div>
@@ -222,7 +268,11 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
           <span className="text-[12px] tabular-nums opacity-80" data-testid="prompter-count">
             {pageCount ? `${index + 1} / ${pageCount}` : '—'}
           </span>
-          {slideTitle && !narrow ? <span className="max-w-full truncate text-[11px] opacity-55">{slideTitle}</span> : null}
+          {!narrow ? (
+            <span className="max-w-full truncate text-[11px] opacity-55">
+              {display.source === 'notes' && !notes[index] && blockForSlide ? 'from the script' : slideTitle}
+            </span>
+          ) : null}
         </div>
         <NavButton onClick={() => step(1)} label="Next page" testid="prompter-next">Next ▶</NavButton>
       </footer>
@@ -231,12 +281,25 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
   );
 }
 
-function Tool({ children, onClick, active, label }: { children: React.ReactNode; onClick(): void; active?: boolean; label?: string }) {
+function Tool({
+  children,
+  onClick,
+  active,
+  label,
+  title,
+}: {
+  children: React.ReactNode;
+  onClick(): void;
+  active?: boolean;
+  /** Only for icon-style buttons whose text is not a readable name. */
+  label?: string;
+  title?: string;
+}) {
   return (
     <button
       onClick={onClick}
       aria-label={label}
-      title={label}
+      title={title ?? label}
       className="h-6 rounded border px-1.5 text-[11.5px] leading-none"
       style={{
         borderColor: 'rgb(128 128 128 / 0.4)',

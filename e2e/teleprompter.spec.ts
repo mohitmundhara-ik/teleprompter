@@ -99,3 +99,43 @@ test('the popout reports when the main window goes away', async ({ page, context
   await popup.close();
   expect(context.pages().length).toBe(0);
 });
+
+test('triple-click opens the teleprompter before anything is loaded', async ({ page }) => {
+  await openApp(page);
+  await expect(page.getByTestId('dropzone')).toBeVisible();
+
+  const [popup] = await Promise.all([
+    page.waitForEvent('popup'),
+    page.getByTestId('stage').click({ clickCount: 3, position: { x: 30, y: 30 } }),
+  ]);
+  await popup.waitForLoadState('domcontentloaded');
+  await expect(popup.getByTestId('prompter-count')).toHaveText('—');
+
+  // It is usable straight away: write the script first, load the deck later.
+  await popup.getByRole('button', { name: 'Edit' }).click();
+  await popup.getByTestId('prompter-editor').fill('opening words, written before the deck');
+  await expect(page.getByTestId('notes-editor')).toHaveValue('opening words, written before the deck');
+});
+
+test('the prompter finds the slide numbers written in the script', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+  await page.getByRole('button', { name: 'Full script' }).click();
+  await page
+    .getByTestId('notes-editor')
+    .fill('--- Slide 1 ---\nalpha words for one\n--- Slide 2 ---\nbeta words for two\n--- Slide 3 ---\ngamma words for three');
+
+  const popup = await openPrompter(page);
+  await expect(popup.getByTestId('prompter-text')).toContainText('alpha words for one');
+  await expect(popup.getByTestId('prompter-text')).not.toContainText('beta words for two');
+
+  await popup.getByTestId('prompter-next').click();
+  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
+  await expect(popup.getByTestId('prompter-text')).toContainText('beta words for two');
+
+  // The whole script view keeps every section, and dims the ones not in play.
+  await popup.getByRole('button', { name: 'Slide notes' }).click();
+  await expect(popup.getByTestId('prompter-text')).toContainText('alpha words for one');
+  await expect(popup.getByTestId('prompter-text')).toContainText('gamma words for three');
+  await expect(popup.getByRole('button', { name: 'Follow' })).toBeVisible();
+});

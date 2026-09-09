@@ -14,6 +14,7 @@ any editable region. The same list is available in the app under Settings.
 | `M` | Mirror horizontally, for prompter glass | Teleprompter |
 | `H` | Hide or show the controls | Teleprompter |
 | `R` | Restart the script from the top | Teleprompter |
+| `T` on the empty stage | Opens the teleprompter before a deck is loaded | Main window |
 | `F` | Full screen | Both windows |
 | `T` | Open or focus the teleprompter | Main window |
 | `Escape` | Leave full screen, or bring hidden controls back | Both windows |

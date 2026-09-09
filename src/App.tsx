@@ -17,6 +17,7 @@ import { converterUrl } from './lib/converter';
 import { openPrompter, prompterUrl } from './lib/popout';
 import { HINT_KEY, LAST_SESSION_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
 import { isTyping } from './lib/shortcuts';
+import { useTripleClick } from './lib/tripleClick';
 import type { LoadedDocument, SessionRecord } from './types';
 
 export default function App() {
@@ -242,6 +243,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [step, openTeleprompter]);
 
+  const tripleClick = useTripleClick(openTeleprompter);
   const doc = store.doc;
   const page = doc?.pages[store.index] ?? null;
 
@@ -290,14 +292,19 @@ export default function App() {
       ) : null}
 
       <div className="flex min-h-0 flex-1">
-        <div ref={stageRef} className="relative flex min-w-0 flex-1 flex-col bg-[var(--bg)]">
+        <div
+          ref={stageRef}
+          {...tripleClick}
+          data-testid="stage"
+          className="relative flex min-w-0 flex-1 flex-col bg-[var(--bg)]"
+        >
           {doc ? (
-            <Canvas page={page} zoom={zoom} onTripleClick={openTeleprompter} />
+            <Canvas page={page} zoom={zoom} />
           ) : (
             <DropZone onFiles={(f) => void handleFiles(f)} onShare={() => void toggleShare()} />
           )}
 
-          {doc && hint ? (
+          {hint ? (
             <div className="pointer-events-auto absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface-2)] px-4 py-2 text-[12.5px] shadow-[var(--shadow)]">
               Triple-click the presentation to open the teleprompter.
               <button onClick={dismissHint} className="text-[var(--ink-3)] hover:text-[var(--ink)]" aria-label="Dismiss hint">

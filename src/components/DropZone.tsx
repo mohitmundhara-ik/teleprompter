@@ -47,7 +47,8 @@ export function DropZone({ onFiles, onShare }: { onFiles(files: File[]): void; o
         <h1 className="mb-2 text-[19px] font-semibold tracking-tight">Load something to present</h1>
         <p className="mx-auto mb-6 max-w-[52ch] text-[13.5px] leading-relaxed text-[var(--ink-2)]">
           Drop a file anywhere in this window, or pick one. Everything is processed on this machine and stored in this
-          browser. Nothing is uploaded.
+          browser. Nothing is uploaded. You can open the teleprompter and start writing before you load anything: triple-click
+          this area.
         </p>
         <div className="mb-7 flex justify-center gap-2">
           <label>

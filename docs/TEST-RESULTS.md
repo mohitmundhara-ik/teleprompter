@@ -10,18 +10,18 @@ Reproduce with `npm run lint && npm run typecheck && npm test && npm run e2e`.
 - `npm run build` — succeeds. Entry chunk 147 kB, teleprompter chunk 8.5 kB,
   PDF, DOCX and PPTX engines split into separate chunks loaded on demand.
 
-## Unit tests, Vitest: 26 passed
+## Unit tests, Vitest: 29 passed
 
 | File | Covers |
 | --- | --- |
-| `lib/format.test.ts` | script splitting on `--- Slide N ---`, `## Slide N`, `[Slide N]`, blank sections, byte and relative time formatting |
+| `lib/format.test.ts` | script splitting and slide-number parsing on `--- Slide N ---`, `## Slide N`, `[Slide N]`, blank sections, byte and relative time formatting |
 | `lib/sanitize.test.ts` | scripts, event handlers, `javascript:` URLs and iframes removed; headings, lists, tables and safe links kept |
 | `lib/id.test.ts` | id uniqueness, identical content hashing to the same value, note keys |
 | `lib/shortcuts.test.ts` | the typing guard, and that every shortcut is documented |
 | `sync/bus.test.ts` | delivery between windows, no self-echo, duplicate frames dropped, other sessions ignored, presence reporting |
 | `db/schema.test.ts` | display settings and session exports validated, tampered values rejected |
 
-## End-to-end tests, Playwright, Chromium: 13 passed
+## End-to-end tests, Playwright, Chromium: 15 passed
 
 `e2e/presentation.spec.ts`
 1. Notes stay attached to the right page across a reload.
@@ -36,11 +36,13 @@ Reproduce with `npm run lint && npm run typecheck && npm test && npm run e2e`.
 8. An edit made in the popout survives closing it and reloading the main window.
 9. Font size and mirroring persist after the popout is closed and reopened; at 280 px wide, Prev, Next and the script stay usable.
 10. Closing the main window puts the popout into `Main presentation disconnected` with the script still readable.
+11. Triple-click opens the teleprompter with nothing loaded, and a script typed there reaches the main window.
+12. Slide numbers written in the script are detected: each page shows its own section and Next moves to the next one.
 
 `e2e/formats.spec.ts`
-11. A `.pptx` loads all slides in order, drawn as slides at the deck's aspect ratio, with their text and the fidelity notice.
-12. Video play, pause and seek are driven from the teleprompter.
-13. A cancelled screen share reports the reason instead of failing silently.
+13. A `.pptx` loads all slides in order, drawn as slides at the deck's aspect ratio, with their text and the fidelity notice.
+14. Video play, pause and seek are driven from the teleprompter.
+15. A cancelled screen share reports the reason instead of failing silently.
 
 ## Bugs this suite caught, and the fixes
 

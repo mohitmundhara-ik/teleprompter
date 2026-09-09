@@ -8,36 +8,14 @@ export type ZoomMode = 'fit' | 'width' | number;
 interface Props {
   page: Page | null;
   zoom: ZoomMode;
-  onTripleClick(): void;
 }
 
-export function Canvas({ page, zoom, onTripleClick }: Props) {
+export function Canvas({ page, zoom }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  /** Selection length before the click sequence began, captured on mousedown. */
-  const selectionBefore = useRef(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.detail === 1) selectionBefore.current = window.getSelection()?.toString().length ?? 0;
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (e.detail !== 3) return;
-    const el = e.target as HTMLElement;
-    // Never fight with a control, a media element, or a live text selection.
-    if (el.closest('button, a, input, textarea, select, video, audio, [data-no-triple]')) return;
-    const inText = Boolean(el.closest('.doc-html, [data-selectable]'));
-    if (inText && selectionBefore.current > 0) return;
-    if (inText) return; // triple-click is the browser's select-paragraph gesture here
-    // A triple click on a slide image selects nothing meaningful: drop it and open.
-    window.getSelection()?.removeAllRanges();
-    onTripleClick();
-  };
 
   return (
     <div
       ref={wrapRef}
-      onMouseDown={handleMouseDown}
-      onClick={handleClick}
       data-testid="canvas"
       className="pd-scroll relative flex min-h-0 flex-1 items-center justify-center overflow-auto bg-[var(--bg)] p-4"
     >

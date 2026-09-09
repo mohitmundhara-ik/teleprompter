@@ -119,9 +119,20 @@ that tells the presenter to export the script, and never clears the text.
   cannot be drawn still falls back to readable text pages. With a converter
   configured, the file is converted to PDF and rendered through the PDF path.
 
+## Script following
+
+`parseScriptBlocks` splits a script into blocks and keeps the slide number each
+one carries, from `--- Slide 4 ---`, `## Slide 4`, `[Slide 4]` and similar
+lines. The teleprompter uses it two ways: a page with no notes of its own shows
+its marked section of the script, and the running script view scrolls itself to
+the current slide and dims the rest. The `Follow` toggle appears only when a
+script actually carries markers, and its state persists with the other display
+settings.
+
 ## Triple-click
 
-The canvas listens for `detail === 3`. It ignores clicks on controls, links,
+The stage listens for `detail === 3`, whether a deck is loaded or the stage is
+still empty. It It ignores clicks on controls, links, labels,
 form fields and media, and inside selectable document text where triple-click is
 the browser's own select-paragraph gesture. On a slide, where a triple click
 selects nothing meaningful, the accidental selection is cleared and the

@@ -17,23 +17,26 @@ Ten minutes, before you rely on this in a real session. Chrome or Edge.
 9. Export `.json`, then Sessions → Delete, then import the `.json` back.
 
 ## Teleprompter
-10. Triple-click the slide. Exactly one window opens.
-11. Triple-click again. The same window comes forward, no duplicate.
-12. Press Next in the teleprompter. The main window moves immediately.
-13. Press Previous in the main window. The teleprompter shows the previous page's notes.
-14. Edit the notes inside the teleprompter. The main window updates as you type.
-15. Change font size, line spacing, column width, palette and mirror. Close the
+10. With nothing loaded, triple-click the empty stage. The teleprompter opens and you can type in it.
+11. Load a deck, then triple-click the slide. Exactly one window opens.
+12. Triple-click again. The same window comes forward, no duplicate.
+13. Press Next in the teleprompter. The main window moves immediately.
+14. Press Previous in the main window. The teleprompter shows the previous page's notes.
+15. Write a script with `--- Slide 2 ---` markers in Full script. Confirm the
+    teleprompter shows each page's own section and the Follow button appears.
+16. Edit the notes inside the teleprompter. The main window updates as you type.
+17. Change font size, line spacing, column width, palette and mirror. Close the
     window and reopen it. Every setting is still as you left it.
-16. Drag the window down to a narrow strip. Prev, Next and the script all stay usable.
-17. Start auto-scroll with Space, change speed, press R to jump back to the top.
-18. Close the main window. The teleprompter says `Main presentation disconnected`
+18. Drag the window down to a narrow strip. Prev, Next and the script all stay usable.
+19. Start auto-scroll with Space, change speed, press R to jump back to the top.
+20. Close the main window. The teleprompter says `Main presentation disconnected`
     and still shows your script.
 
 ## Screen share
-19. Press Share screen, pick a window, confirm the live preview and the note that
+21. Press Share screen, pick a window, confirm the live preview and the note that
     slide controls are inactive.
-20. Confirm the teleprompter window is not the one being shared, then stop sharing.
+22. Confirm the teleprompter window is not the one being shared, then stop sharing.
 
 ## Keyboard
-21. With focus in the notes editor, press the arrow keys. The page must not change.
-22. Click the slide, press the arrow keys. The page changes.
+23. With focus in the notes editor, press the arrow keys. The page must not change.
+24. Click the slide, press the arrow keys. The page changes.

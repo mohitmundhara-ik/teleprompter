@@ -42,10 +42,13 @@ No environment variables are needed, so there is no `.env.example`.
 
 1. Drop a PDF, PPTX, DOCX, image, video, audio, TXT or MD file on the window.
 2. Type your talk track in the right panel. `Slide notes` is per page,
-   `Full script` is one running script. Paste a long script into `Full script`,
-   mark it with lines such as `--- Slide 2 ---`, and press `Split by markers` to
-   scatter it across the pages.
-3. Triple-click the slide. The teleprompter opens in its own window: drag it to
+   `Full script` is one running script. Mark a long script with lines such as
+   `--- Slide 2 ---` and the teleprompter picks the numbers up on its own: each
+   page shows its own section, and the running script scrolls itself to the
+   slide you are on. `Split by markers` turns those sections into real per-page
+   notes if you would rather edit them separately.
+3. Triple-click the slide. You can do this before loading anything, so you can
+   write the script first and bring the deck in later. The teleprompter opens in its own window: drag it to
    a second monitor, or park it under your webcam and size it down to a strip.
 4. Share your screen in your meeting tool and pick the PromptDeck window, not
    the teleprompter window.
