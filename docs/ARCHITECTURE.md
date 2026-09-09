@@ -150,12 +150,13 @@ teleprompter opens.
 ## Present mode
 
 `Present` replaces the whole layout with the slide on black, filling the tab.
-Nothing else is in the DOM, so sharing the tab in a meeting shares the slide and
-nothing else: no toolbar, no notes, and no browser chrome, since a tab share
-never includes it. A control bar fades in on mouse movement and back out after
-two seconds of stillness, and the cursor hides with it. Everything else is
-driven from the teleprompter window, which is a separate window and therefore
-never part of the shared tab. This is distinct from `F`, which asks the browser
+Nothing else is in the DOM: no toolbar, no notes, no controls, no toasts, and
+the cursor is hidden. Anything rendered in this branch would be visible to the
+audience the moment the tab is shared, so the branch stays empty by design and
+the tests assert that no button exists there. Browser chrome is not captured by
+a tab share to begin with. Everything is driven from the teleprompter window,
+which is a separate window and therefore never part of the shared tab, from the
+arrow keys, or from Escape. This is distinct from `F`, which asks the browser
 for real full screen on the current monitor.
 
 ## Screen share

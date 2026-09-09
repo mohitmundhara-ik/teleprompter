@@ -34,10 +34,10 @@ Ten minutes, before you rely on this in a real session. Chrome or Edge.
     and still shows your script.
 
 ## Presenting
-25. Press Present. The slide fills the tab, nothing else is on screen.
-26. Move the mouse: the control bar appears. Hold still for two seconds: it and the cursor disappear.
+25. Press Present. The slide fills the tab. Nothing else is on screen and the cursor is gone.
+26. Move the mouse around: still nothing appears.
 27. Share this tab in Zoom or Meet and confirm the audience sees only the slide.
-28. Change pages from the teleprompter and confirm the shared tab follows.
+28. Change pages from the teleprompter and with the arrow keys; confirm the shared tab follows.
 29. Press Escape and confirm the normal layout returns on the page you ended on.
 
 ## Screen share

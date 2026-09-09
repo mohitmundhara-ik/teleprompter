@@ -29,10 +29,10 @@ Reproduce with `npm run lint && npm run typecheck && npm test && npm run e2e`.
 2. Every PDF page renders, in order, without cropping, and the last page does not run past the end.
 3. A corrupt file reports an error and existing notes survive.
 4. Arrow keys navigate, and are ignored while typing in the editor.
-5. Present mode fills the viewport with the slide, removes the toolbar and notes
-   panel from the page, reveals its control bar on movement and hides it again,
-   and Escape restores the normal layout with the page change kept.
-6. The teleprompter drives a presenting tab, and the present bar follows it.
+5. Present mode fills the viewport with the slide and renders no button, no page
+   indicator, no message and no cursor, including after mouse movement; the
+   arrow keys still navigate and Escape restores the layout on the new page.
+6. The teleprompter drives a presenting tab without anything being drawn on it.
 7. A labelled talk track imports, maps onto the pages with no header, no
    separators and no other slide's text, and is still there after a reload.
 

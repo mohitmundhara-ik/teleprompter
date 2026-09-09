@@ -61,13 +61,12 @@ No environment variables are needed, so there is no `.env.example`.
 3. Triple-click the slide. You can do this before loading anything, so you can
    write the script first and bring the deck in later. The teleprompter opens in its own window: drag it to
    a second monitor, or park it under your webcam and size it down to a strip.
-4. Press `Present`, or `P`. The slide fills the tab: no toolbar, no notes
-   panel, no address bar. In Zoom or Meet choose `Share` then this browser tab,
-   and the audience sees the slide and nothing else.
-5. Drive it from the teleprompter window, which is never part of the shared
-   tab. Moving the mouse over the slide brings up a small control bar for two
-   seconds if you prefer clicking; keep still and it disappears again. `Escape`
-   leaves presenting.
+4. Press `Present`, or `P`. The slide fills the tab and nothing else is drawn:
+   no toolbar, no notes panel, no controls, no messages, not even a cursor. In
+   Zoom or Meet choose `Share`, then this browser tab, and the audience sees the
+   slide alone.
+5. Drive it from the teleprompter window, which is a separate window and never
+   part of the shared tab, or with the arrow keys. `Escape` leaves presenting.
 6. `Next` and `Prev` work in either window. Both stay in step.
 
 ## Scripts

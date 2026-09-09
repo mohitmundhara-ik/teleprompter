@@ -76,7 +76,7 @@ export function Toolbar(p: Props) {
         <option value="2">200%</option>
       </select>
       <Button onClick={p.onFullscreen} title="Full screen on this monitor (F)">Full screen</Button>
-      <Button onClick={p.onPresent} title="Fill this tab with the slide, ready to share (P)">Present</Button>
+      <Button onClick={p.onPresent} title="Show the slide alone, ready to share this tab. Escape to come back (P)">Present</Button>
       <span className="flex-1" />
       <span className="text-[12px] tabular-nums" style={{ color: save === 'error' ? 'var(--danger)' : 'var(--ink-3)' }}>
         {save === 'saving' ? 'Saving…' : save === 'saved' ? 'Saved' : save === 'error' ? 'Save failed' : session ? 'Ready' : ''}

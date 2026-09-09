@@ -15,7 +15,7 @@ any editable region. The same list is available in the app under Settings.
 | `H` | Hide or show the controls | Teleprompter |
 | `R` | Restart the script from the top | Teleprompter |
 | `T` on the empty stage | Opens the teleprompter before a deck is loaded | Main window |
-| `P` | Enter or leave present mode: the slide alone fills the tab | Main window |
+| `P` | Enter or leave present mode: the slide alone fills the tab, no controls | Main window |
 | `F` | Full screen on this monitor | Both windows |
 | `T` | Open or focus the teleprompter | Main window |
 | `Escape` | Leave presenting or full screen, or bring hidden controls back | Both windows |

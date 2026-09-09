@@ -7,7 +7,6 @@ import { Sessions } from './components/Sessions';
 import { Settings } from './components/Settings';
 import { Toasts } from './components/Toasts';
 import { ProgressOverlay } from './components/ProgressOverlay';
-import { PresentBar } from './components/PresentBar';
 import { Button } from './components/ui';
 import { flushPendingSave, useStore } from './state/store';
 import { ACCEPT, importFiles } from './adapters';
@@ -16,7 +15,7 @@ import { adoptNotesFromHash } from './lib/transfer';
 import { hashFile, uid } from './lib/id';
 import { converterUrl } from './lib/converter';
 import { openPrompter, prompterUrl } from './lib/popout';
-import { HINT_KEY, LAST_SESSION_KEY, PRESENT_TIP_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
+import { HINT_KEY, LAST_SESSION_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
 import { isTyping } from './lib/shortcuts';
 import { useTripleClick } from './lib/tripleClick';
 import type { LoadedDocument, SessionRecord } from './types';
@@ -33,8 +32,6 @@ export default function App() {
   const [sharing, setSharing] = useState(false);
   const [notesOpen, setNotesOpen] = useState(true);
   const [presenting, setPresenting] = useState(false);
-  const [chrome, setChrome] = useState(true);
-  const [presentTip, setPresentTip] = useState(() => safeGet(PRESENT_TIP_KEY) !== '1');
   const fileInput = useRef<HTMLInputElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const bootRef = useRef(false);
@@ -71,27 +68,6 @@ export default function App() {
 
   useEffect(() => applyTheme(theme), [theme]);
 
-  /* ---- presenting: hide everything, reveal controls only on movement ---- */
-  useEffect(() => {
-    if (!presenting) {
-      setChrome(true);
-      return;
-    }
-    let timer: ReturnType<typeof setTimeout>;
-    const wake = () => {
-      setChrome(true);
-      clearTimeout(timer);
-      timer = setTimeout(() => setChrome(false), 2000);
-    };
-    wake();
-    window.addEventListener('mousemove', wake);
-    window.addEventListener('mousedown', wake);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('mousemove', wake);
-      window.removeEventListener('mousedown', wake);
-    };
-  }, [presenting]);
 
   /* ---- importing ---- */
   const handleFiles = useCallback(
@@ -284,12 +260,16 @@ export default function App() {
   const page = doc?.pages[store.index] ?? null;
 
   if (presenting) {
+    // Presenting draws the slide and nothing else: no controls, no messages,
+    // no cursor. Anything rendered here would be visible to the audience the
+    // moment this tab is shared. Drive it from the teleprompter window, the
+    // arrow keys, or Escape to come back.
     return (
       <div
         {...tripleClick}
         data-testid="stage"
         className="fixed inset-0 z-10 flex flex-col bg-black"
-        style={{ cursor: chrome ? 'default' : 'none' }}
+        style={{ cursor: 'none' }}
       >
         {doc ? (
           <Canvas page={page} zoom="fit" bare />
@@ -298,21 +278,6 @@ export default function App() {
             Nothing is loaded yet. Press Escape to go back and add a file.
           </p>
         )}
-        <PresentBar
-          visible={chrome}
-          tip={presentTip}
-          onDismissTip={() => {
-            setPresentTip(false);
-            safeSet(PRESENT_TIP_KEY, '1');
-          }}
-          index={store.index}
-          count={doc?.pages.length ?? 0}
-          onPrev={() => step(-1)}
-          onNext={() => step(1)}
-          onPrompter={openTeleprompter}
-          onExit={() => setPresenting(false)}
-        />
-        <Toasts />
       </div>
     );
   }
