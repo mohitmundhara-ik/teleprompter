@@ -1,39 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Toolbar } from './components/Toolbar';
-import { Canvas, type ZoomMode } from './components/Canvas';
-import { NotesPanel } from './components/NotesPanel';
-import { DropZone } from './components/DropZone';
-import { Sessions } from './components/Sessions';
+import { Canvas } from './components/Canvas';
+import { Sessions, Modal } from './components/Sessions';
 import { Settings } from './components/Settings';
 import { Toasts } from './components/Toasts';
 import { ProgressOverlay } from './components/ProgressOverlay';
-import { Button } from './components/ui';
-import { flushPendingSave, useStore } from './state/store';
+import { useStore } from './state/store';
 import { ACCEPT, importFiles } from './adapters';
 import { getFile, getSession, putFile, putSession } from './db/db';
 import { adoptNotesFromHash } from './lib/transfer';
+import { flushPendingSave } from './state/store';
 import { hashFile, uid } from './lib/id';
 import { converterUrl } from './lib/converter';
 import { openPrompter, prompterUrl } from './lib/popout';
-import { HINT_KEY, LAST_SESSION_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
-import { isTyping } from './lib/shortcuts';
+import { LAST_SESSION_KEY, applyTheme, safeGet, safeSet } from './lib/prefs';
+import { SHORTCUTS, isTyping } from './lib/shortcuts';
 import { useTripleClick } from './lib/tripleClick';
 import type { LoadedDocument, SessionRecord } from './types';
 
+/**
+ * The presenter's screen. It draws the slide and nothing else, because this is
+ * the window that gets shared. Every control lives either on the keyboard or in
+ * the teleprompter window, which a shared tab never includes.
+ */
 export default function App() {
   const store = useStore();
   const { init, attachDoc, step, setNote, toast, theme } = store;
-  const [zoom, setZoom] = useState<ZoomMode>('fit');
   const [progress, setProgress] = useState<{ pct: number; label: string } | null>(null);
-  const [showSessions, setShowSessions] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [panel, setPanel] = useState<'none' | 'sessions' | 'settings' | 'keys'>('none');
   const [popupBlocked, setPopupBlocked] = useState(false);
-  const [hint, setHint] = useState(() => safeGet(HINT_KEY) !== '1');
-  const [sharing, setSharing] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(true);
-  const [presenting, setPresenting] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
   const bootRef = useRef(false);
 
   /* ---- session boot and crash recovery ---- */
@@ -55,7 +51,6 @@ export default function App() {
             onProgress: (pct, label) => setProgress({ pct, label }),
           });
           attachDoc(doc, session);
-          toast(`Recovered ${session.title} with your notes.`);
         } catch {
           toast('The previous file could not be reopened, but your notes are safe.', 'warn');
         } finally {
@@ -68,15 +63,13 @@ export default function App() {
 
   useEffect(() => applyTheme(theme), [theme]);
 
-
   /* ---- importing ---- */
   const handleFiles = useCallback(
     async (files: File[]) => {
       const first = files[0];
       if (!first) return;
-      const isPptx = /\.pptx?$/i.test(first.name);
       let allowConversion = false;
-      if (isPptx && converterUrl()) {
+      if (/\.pptx?$/i.test(first.name) && converterUrl()) {
         allowConversion = window.confirm(
           `Send "${first.name}" to your converter service for exact slide rendering?\n\nChoose Cancel to keep the file on this machine and import slide text only.`,
         );
@@ -113,16 +106,15 @@ export default function App() {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
+
     // Show the deck first: nothing about saving should delay the presenter.
     attachDoc(doc, session);
     for (const n of doc.notices) toast(n, 'warn');
-    setZoom('fit');
 
     try {
       await putSession(session);
       await putFile({ sessionId: id, blob: file, name: file.name, type: file.type });
-      const adopted = await adoptNotesFromHash(id, docHash, id);
-      if (adopted) {
+      if (await adoptNotesFromHash(id, docHash, id)) {
         await useStore.getState().reloadTexts();
         toast('Notes from the last time you opened this file were restored.');
       }
@@ -131,92 +123,39 @@ export default function App() {
         await flushPendingSave();
       }
     } catch (err) {
-      toast(
-        err instanceof Error ? err.message : 'This file is open, but it could not be saved for next time.',
-        'error',
-      );
+      toast(err instanceof Error ? err.message : 'This file is open, but it could not be saved for next time.', 'error');
     }
   };
 
-  /* ---- screen share ---- */
-  const toggleShare = async () => {
-    const w = window as unknown as { __pdScreenStream?: MediaStream };
-    if (sharing) {
-      w.__pdScreenStream?.getTracks().forEach((t) => t.stop());
-      w.__pdScreenStream = undefined;
-      setSharing(false);
-      return;
-    }
-    if (!navigator.mediaDevices?.getDisplayMedia) {
-      toast('This browser cannot share a screen. Chrome or Edge on desktop is required.', 'error');
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-      w.__pdScreenStream = stream;
-      stream.getVideoTracks()[0]?.addEventListener('ended', () => {
-        w.__pdScreenStream = undefined;
-        setSharing(false);
-        toast('Screen sharing ended.');
-      });
-      setSharing(true);
-      const session: SessionRecord = {
-        id: useStore.getState().sessionId ?? uid('s'),
-        title: 'Screen share',
-        fileName: '',
-        mimeType: '',
-        kind: 'screen',
-        docHash: 'screen',
-        pageCount: 1,
-        pageTitles: ['Shared screen'],
-        currentIndex: 0,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      await putSession(session);
-      attachDoc(
-        {
-          kind: 'screen',
-          title: 'Screen share',
-          pages: [{ index: 0, title: 'Shared screen', render: { type: 'screen' } }],
-          notices: [],
-        },
-        session,
-      );
-      toast('Share the PromptDeck window or another window. Do not pick the teleprompter window if you want it private.');
-    } catch (err) {
-      const name = (err as { name?: string }).name;
-      toast(
-        name === 'NotAllowedError'
-          ? 'Screen sharing was cancelled or blocked in your browser permissions.'
-          : 'Screen sharing could not start.',
-        name === 'NotAllowedError' ? 'warn' : 'error',
-      );
-    }
-  };
-
-  /* ---- presenting: the tab fills the screen, nothing else is drawn ---- */
-  const enterPresent = useCallback(() => {
-    // Called straight from a click or key press, which is what the browser
-    // requires to grant full screen.
-    void document.documentElement.requestFullscreen?.().catch(() => undefined);
-    setPresenting(true);
-  }, []);
-
-  const exitPresent = useCallback(() => {
-    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
-    setPresenting(false);
-  }, []);
-
+  /* ---- drag and drop anywhere ---- */
   useEffect(() => {
-    // Leaving full screen by any route leaves presenting too, so the two never
-    // disagree.
-    const onChange = () => {
-      if (!document.fullscreenElement) setPresenting(false);
+    let depth = 0;
+    const enter = (e: DragEvent) => {
+      e.preventDefault();
+      depth++;
+      setDragging(true);
     };
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
+    const over = (e: DragEvent) => e.preventDefault();
+    const leave = () => {
+      if (--depth <= 0) setDragging(false);
+    };
+    const drop = (e: DragEvent) => {
+      e.preventDefault();
+      depth = 0;
+      setDragging(false);
+      if (e.dataTransfer?.files.length) void handleFiles([...e.dataTransfer.files]);
+    };
+    window.addEventListener('dragenter', enter);
+    window.addEventListener('dragover', over);
+    window.addEventListener('dragleave', leave);
+    window.addEventListener('drop', drop);
+    return () => {
+      window.removeEventListener('dragenter', enter);
+      window.removeEventListener('dragover', over);
+      window.removeEventListener('dragleave', leave);
+      window.removeEventListener('drop', drop);
+    };
+  }, [handleFiles]);
 
   /* ---- teleprompter popout ---- */
   const openTeleprompter = useCallback(() => {
@@ -224,20 +163,17 @@ export default function App() {
     if (!sid) return;
     const { ok } = openPrompter(sid);
     setPopupBlocked(!ok);
-    if (!ok) toast('Your browser blocked the teleprompter window. Allow pop-ups for this site, then try again.', 'warn');
-    if (hint) dismissHint();
-  }, [hint, toast]);  
+  }, []);
 
-  const dismissHint = () => {
-    setHint(false);
-    safeSet(HINT_KEY, '1');
-  };
+  const fullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    else void document.documentElement.requestFullscreen?.().catch(() => undefined);
+  }, []);
 
-  /* ---- keyboard ---- */
+  /* ---- keyboard: the only chrome this window has ---- */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (isTyping(e.target)) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
       switch (e.key) {
         case 'ArrowRight':
         case 'PageDown':
@@ -253,79 +189,53 @@ export default function App() {
         case 'T':
           openTeleprompter();
           break;
-        case 'p':
-        case 'P':
-          if (document.fullscreenElement) exitPresent();
-          else enterPresent();
+        case 'o':
+        case 'O':
+          fileInput.current?.click();
           break;
-        case 'Escape':
-          exitPresent();
+        case 'n':
+        case 'N': {
+          const id = uid('s');
+          safeSet(LAST_SESSION_KEY, id);
+          location.href = `${location.pathname}?session=${id}`;
+          break;
+        }
+        case 's':
+        case 'S':
+          setPanel((p) => (p === 'sessions' ? 'none' : 'sessions'));
+          break;
+        case ',':
+          setPanel((p) => (p === 'settings' ? 'none' : 'settings'));
           break;
         case 'f':
         case 'F':
-          void stageRef.current?.requestFullscreen?.().catch(() => undefined);
+          fullscreen();
           break;
         case 'd':
-        case 'D': {
-          const s = useStore.getState();
-          s.setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+        case 'D':
+          useStore.getState().setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
           break;
-        }
+        case '?':
+          setPanel((p) => (p === 'keys' ? 'none' : 'keys'));
+          break;
+        case 'Escape':
+          setPanel('none');
+          if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+          break;
         default:
           break;
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [step, openTeleprompter, enterPresent, exitPresent]);
+  }, [step, openTeleprompter, fullscreen]);
 
   const tripleClick = useTripleClick(openTeleprompter);
   const doc = store.doc;
   const page = doc?.pages[store.index] ?? null;
 
-  if (presenting) {
-    // Presenting draws the slide and nothing else: no controls, no messages,
-    // no cursor. Anything rendered here would be visible to the audience the
-    // moment this tab is shared. Drive it from the teleprompter window, the
-    // arrow keys, or Escape to come back.
-    return (
-      <div
-        {...tripleClick}
-        data-testid="stage"
-        className="fixed inset-0 z-10 flex flex-col bg-black"
-        style={{ cursor: 'none' }}
-      >
-        {doc ? (
-          <Canvas page={page} zoom="fit" bare />
-        ) : (
-          <p className="m-auto max-w-[46ch] text-center text-[14px] text-[var(--ink-2)]">
-            Nothing is loaded yet. Press Escape to go back and add a file.
-          </p>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-full flex-col">
-      <Toolbar
-        onNew={() => {
-          const id = uid('s');
-          safeSet(LAST_SESSION_KEY, id);
-          location.href = `${location.pathname}?session=${id}`;
-        }}
-        onUpload={() => fileInput.current?.click()}
-        onScreenShare={() => void toggleShare()}
-        onPrompter={openTeleprompter}
-        onFullscreen={() => void stageRef.current?.requestFullscreen?.().catch(() => undefined)}
-        onSettings={() => setShowSettings(true)}
-        onSessions={() => setShowSessions(true)}
-        onPresent={enterPresent}
-        sharing={sharing}
-        zoom={zoom}
-        setZoom={setZoom}
-      />
-
+    <div {...tripleClick} data-testid="stage" className="relative flex h-full w-full flex-col bg-black">
       <input
         ref={fileInput}
         type="file"
@@ -338,84 +248,72 @@ export default function App() {
         }}
       />
 
+      {doc ? (
+        <Canvas page={page} zoom="fit" bare />
+      ) : (
+        <div className="m-auto max-w-[46ch] px-6 text-center text-[13.5px] leading-relaxed text-[var(--ink-2)]">
+          <p className="mb-4">
+            Drop a deck anywhere in this window. Triple-click to open the teleprompter, which holds the script and the
+            controls. Press ? for the keys.
+          </p>
+          <button
+            data-no-triple
+            onClick={() => fileInput.current?.click()}
+            className="h-8 rounded-md border border-[var(--line)] bg-[var(--surface-2)] px-3 text-[13px] text-[var(--ink)]"
+          >
+            Choose a file
+          </button>
+        </div>
+      )}
+
+      {dragging ? (
+        <div className="pointer-events-none absolute inset-3 rounded-xl border-2 border-dashed border-[var(--accent)]" aria-hidden />
+      ) : null}
+
       {popupBlocked ? (
-        <div className="flex items-center gap-3 border-b border-[var(--warn)] bg-[color-mix(in_srgb,var(--warn)_12%,transparent)] px-3 py-2 text-[13px]">
-          <span className="flex-1">
-            The teleprompter window was blocked. Allow pop-ups for this site in the address bar, then open it again.
-          </span>
-          <Button size="sm" onClick={openTeleprompter}>Open teleprompter</Button>
-          <a className="text-[var(--accent)] underline" href={prompterUrl(store.sessionId ?? '')} target="_blank" rel="noreferrer">
-            Open in a tab instead
+        <div className="absolute inset-x-0 top-0 flex items-center gap-3 bg-[var(--warn)] px-3 py-2 text-[13px] text-black">
+          <span className="flex-1">The teleprompter window was blocked. Allow pop-ups for this site, then triple-click again.</span>
+          <a className="underline" href={prompterUrl(store.sessionId ?? '')} target="_blank" rel="noreferrer" data-no-triple>
+            Open in a tab
           </a>
-          <Button size="sm" variant="ghost" onClick={() => setPopupBlocked(false)}>Dismiss</Button>
+          <button data-no-triple onClick={() => setPopupBlocked(false)}>Dismiss</button>
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-1">
-        <div
-          ref={stageRef}
-          {...tripleClick}
-          data-testid="stage"
-          className="relative flex min-w-0 flex-1 flex-col bg-[var(--bg)]"
-        >
-          {doc ? (
-            <Canvas page={page} zoom={zoom} />
-          ) : (
-            <DropZone onFiles={(f) => void handleFiles(f)} onShare={() => void toggleShare()} />
-          )}
+      {progress ? <ProgressOverlay pct={progress.pct} label={progress.label} /> : null}
 
-          {hint ? (
-            <div className="pointer-events-auto absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface-2)] px-4 py-2 text-[12.5px] shadow-[var(--shadow)]">
-              Triple-click the presentation to open the teleprompter.
-              <button onClick={dismissHint} className="text-[var(--ink-3)] hover:text-[var(--ink)]" aria-label="Dismiss hint">
-                Got it
-              </button>
-            </div>
-          ) : null}
-
-          {store.session?.kind === 'screen' ? (
-            <p className="border-t border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-[12.5px] text-[var(--ink-2)]">
-              Screen sharing shows another application. A web page cannot advance slides inside PowerPoint or Keynote, so
-              page controls are inactive. Load the deck into PromptDeck to control it from the teleprompter.
-            </p>
-          ) : null}
-
-          {progress ? <ProgressOverlay pct={progress.pct} label={progress.label} /> : null}
-        </div>
-
-        {notesOpen ? (
-          <aside className="flex w-[380px] shrink-0 flex-col gap-2 border-l border-[var(--line)] bg-[var(--bg)] p-2">
-            <NotesPanel />
-            <Button size="sm" variant="ghost" onClick={() => setNotesOpen(false)}>Hide notes panel</Button>
-          </aside>
-        ) : (
-          <button
-            onClick={() => setNotesOpen(true)}
-            className="w-8 shrink-0 border-l border-[var(--line)] bg-[var(--surface)] text-[11px] text-[var(--ink-2)] hover:text-[var(--ink)]"
-            style={{ writingMode: 'vertical-rl' }}
-          >
-            Notes
-          </button>
-        )}
-      </div>
-
-      {showSessions ? (
+      {panel === 'sessions' ? (
         <Sessions
-          onClose={() => setShowSessions(false)}
+          onClose={() => setPanel('none')}
           onOpen={(id) => {
             safeSet(LAST_SESSION_KEY, id);
             location.href = `${location.pathname}?session=${id}`;
           }}
         />
       ) : null}
-      {showSettings ? (
+      {panel === 'settings' ? (
         <Settings
-          onClose={() => setShowSettings(false)}
+          onClose={() => setPanel('none')}
           onWiped={() => {
-            setShowSettings(false);
+            setPanel('none');
             location.href = location.pathname;
           }}
         />
+      ) : null}
+      {panel === 'keys' ? (
+        <Modal title="Keys" onClose={() => setPanel('none')}>
+          <table className="w-full p-4 text-left text-[13px]">
+            <tbody>
+              {SHORTCUTS.map((s) => (
+                <tr key={s.keys}>
+                  <td className="w-[210px] px-4 py-1 font-mono text-[12px] text-[var(--ink-2)]">{s.keys}</td>
+                  <td className="px-2 py-1">{s.what}</td>
+                  <td className="px-4 py-1 text-[12px] text-[var(--ink-3)]">{s.where}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Modal>
       ) : null}
       <Toasts />
     </div>

@@ -2,6 +2,10 @@
 
 Ten minutes, before you rely on this in a real session. Chrome or Edge.
 
+## The shared window
+0. With a deck loaded, look at the slide window. There must be no toolbar, no
+   panel, no badge and no message. If you can see a control, it is a bug.
+
 ## Import and render
 1. Drop a multi-page PDF. Pages appear, the counter reads `1 / n`, nothing is cropped.
 2. Switch zoom between Fit screen, Fit width and 200%. The page redraws sharply each time.

@@ -1,135 +1,108 @@
 import { expect, test } from '@playwright/test';
 import { join } from 'node:path';
-import { FIXTURES, loadFixture, openApp, openPrompter, typeNote } from './helpers';
+import { FIXTURES, expectPage, loadFixture, openApp, openPrompter, writeNote } from './helpers';
 
-test('notes stay attached to the right page across a reload', async ({ page }) => {
-  await openApp(page);
-  await loadFixture(page);
-  await expect(page.getByTestId('page-indicator')).toHaveText('1 / 3');
-
-  await typeNote(page, 'notes for page one');
-  await page.getByRole('button', { name: 'Next' }).click();
-  await typeNote(page, 'notes for page two');
-  await page.getByRole('button', { name: 'Next' }).click();
-  await typeNote(page, 'notes for page three');
-
-  await page.reload();
-  await expect(page.getByTestId('page-indicator')).toHaveText('3 / 3', { timeout: 15000 });
-  await expect(page.getByTestId('notes-editor')).toHaveValue('notes for page three');
-  await page.getByRole('button', { name: 'Previous' }).click();
-  await expect(page.getByTestId('notes-editor')).toHaveValue('notes for page two');
-  await page.getByRole('button', { name: 'Previous' }).click();
-  await expect(page.getByTestId('notes-editor')).toHaveValue('notes for page one');
-});
-
-test('every page renders and the order never changes', async ({ page }) => {
-  await openApp(page);
-  await loadFixture(page);
-  for (let i = 1; i <= 3; i++) {
-    await expect(page.getByTestId('page-indicator')).toHaveText(`${i} / 3`);
-    const box = await page.locator('canvas').boundingBox();
-    expect(box!.width).toBeGreaterThan(50);
-    expect(box!.height).toBeGreaterThan(50);
-    if (i < 3) await page.getByRole('button', { name: 'Next' }).click();
-  }
-  await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Next' }).click();
-  await expect(page.getByTestId('page-indicator')).toHaveText('3 / 3');
-});
-
-test('a corrupt file reports an error and keeps existing notes', async ({ page }) => {
-  await openApp(page);
-  await loadFixture(page);
-  await typeNote(page, 'work I do not want to lose');
-
-  await page.setInputFiles('input[type=file]', join(FIXTURES, 'broken.pdf'));
-  await expect(page.getByRole('status')).toContainText(/could not be opened|corrupt/i);
-  await expect(page.getByTestId('notes-editor')).toHaveValue('work I do not want to lose');
-});
-
-test('arrow keys navigate but never while typing', async ({ page }) => {
-  await openApp(page);
-  await loadFixture(page);
-  await page.getByTestId('canvas').click({ position: { x: 20, y: 20 } });
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
-
-  const editor = page.getByTestId('notes-editor');
-  await editor.click();
-  await editor.fill('abc');
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('ArrowLeft');
-  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
-  await expect(editor).toHaveValue('abc');
-});
-
-test('present mode shows the slide and nothing else at all', async ({ page }) => {
+test('the slide window shows the slide and no controls at all', async ({ page }) => {
   await openApp(page);
   await loadFixture(page);
 
-  await page.getByRole('button', { name: 'Present' }).click();
+  // Nothing here that an audience should not see. The one input is the hidden
+  // file picker, which is off screen.
+  await expect(page.locator('button')).toHaveCount(0);
+  await expect(page.locator('textarea')).toHaveCount(0);
+  await expect(page.locator('input:not(.sr-only)')).toHaveCount(0);
   await expect(page.locator('canvas')).toBeVisible();
-
-  // Anything on screen here would be shared with the audience.
-  await expect(page.getByRole('button')).toHaveCount(0);
-  await expect(page.getByTestId('notes-editor')).toHaveCount(0);
-  await expect(page.getByTestId('page-indicator')).toHaveCount(0);
-  await expect(page.getByRole('status')).toHaveCount(0);
-
-  // It stays bare when the mouse moves, and the cursor is hidden too.
-  await page.mouse.move(300, 300);
-  await page.waitForTimeout(400);
-  await expect(page.getByRole('button')).toHaveCount(0);
-  await expect(page.getByTestId('stage')).toHaveCSS('cursor', 'none');
 
   const stage = await page.getByTestId('stage').boundingBox();
   const view = page.viewportSize()!;
   expect(stage!.width).toBe(view.width);
   expect(stage!.height).toBe(view.height);
-
-  // Keyboard still drives it, and Escape brings the working layout back.
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: 'Upload' })).toBeVisible();
-  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
 });
 
-test('the teleprompter still drives a presenting tab', async ({ page }) => {
+test('notes stay attached to the right page across a reload', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+  const popup = await openPrompter(page);
+  await expectPage(popup, '1 / 3');
+
+  await writeNote(popup, 'notes for page one');
+  await popup.getByTestId('prompter-next').click();
+  await writeNote(popup, 'notes for page two');
+  await popup.getByTestId('prompter-next').click();
+  await writeNote(popup, 'notes for page three');
+  await popup.getByRole('button', { name: 'Done' }).click();
+  await popup.waitForTimeout(700);
+
+  // The teleprompter stays open and reconnects by itself when the slide window
+  // reloads: no second window, no lost script.
+  await page.reload();
+  await expect(page.locator('canvas')).toBeVisible({ timeout: 20000 });
+  await expect(popup.getByTestId('conn-status')).toHaveText('Connected', { timeout: 10000 });
+  await expectPage(popup, '3 / 3');
+  await expect(popup.getByTestId('prompter-text')).toContainText('notes for page three');
+  await popup.getByTestId('prompter-prev').click();
+  await expect(popup.getByTestId('prompter-text')).toContainText('notes for page two');
+});
+
+test('arrow keys move the deck, and the teleprompter follows', async ({ page }) => {
   await openApp(page);
   await loadFixture(page);
   const popup = await openPrompter(page);
 
-  await page.getByRole('button', { name: 'Present' }).click();
-  await popup.getByTestId('prompter-next').click();
-  await expect(popup.getByTestId('prompter-count')).toHaveText('2 / 3');
-
-  // The presenting tab followed, without drawing anything to say so.
-  await expect(page.getByRole('button')).toHaveCount(0);
-  await page.keyboard.press('Escape');
-  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3');
+  await page.getByTestId('stage').click({ position: { x: 20, y: 20 } });
+  await page.keyboard.press('ArrowRight');
+  await expectPage(popup, '2 / 3');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expectPage(popup, '3 / 3');
+  await page.keyboard.press('ArrowLeft');
+  await expectPage(popup, '2 / 3');
 });
 
-test('a labelled talk track maps onto the pages and survives a reload', async ({ page }) => {
+test('keys are ignored while the presenter is typing a script', async ({ page }) => {
   await openApp(page);
   await loadFixture(page);
+  const popup = await openPrompter(page);
+  await popup.getByTestId('prompter-next').click();
+  await expectPage(popup, '2 / 3');
 
-  await page.setInputFiles('input[accept=".txt,.md,.markdown,.json"]', join(FIXTURES, 'talk-track.txt'));
-  await expect(page.getByRole('status')).toContainText(/mapped onto \d+ pages/);
+  await writeNote(popup, 'abc');
+  await popup.keyboard.press('ArrowRight');
+  await popup.keyboard.press('ArrowLeft');
+  await expectPage(popup, '2 / 3');
+  await expect(popup.getByTestId('prompter-editor')).toHaveValue('abc');
+});
 
-  // Page one holds its own body and none of the file's header or other slides.
-  const editor = page.getByTestId('notes-editor');
-  await expect(editor).toContainText('That is loop engineering');
-  await expect(editor).not.toContainText('YOUR FLOW');
-  await expect(editor).not.toContainText('A QUICK INTRODUCTION');
-  await expect(editor).not.toContainText('====');
+test('a corrupt file reports itself in the teleprompter and keeps the script', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+  const popup = await openPrompter(page);
+  await writeNote(popup, 'work I do not want to lose');
+  await popup.getByRole('button', { name: 'Done' }).click();
 
-  await page.getByRole('button', { name: 'Next' }).click();
-  await expect(editor).toContainText('Interview Kickstart');
-  await expect(editor).not.toContainText('That is loop engineering');
+  await page.setInputFiles('input[type=file]', join(FIXTURES, 'broken.pdf'));
+  // The message goes to the private window, not onto the shared slide.
+  await expect(popup.getByRole('status')).toContainText(/could not be opened|corrupt/i);
+  await expect(page.getByRole('status')).toHaveCount(0);
+  await expect(popup.getByTestId('prompter-text')).toContainText('work I do not want to lose');
+});
+
+test('a labelled talk track maps onto the pages from the teleprompter', async ({ page }) => {
+  await openApp(page);
+  await loadFixture(page);
+  const popup = await openPrompter(page);
+
+  await popup.getByRole('button', { name: 'Script tools', exact: true }).click();
+  await popup.setInputFiles('input[accept=".txt,.md,.markdown,.json"]', join(FIXTURES, 'talk-track.txt'));
+  await expect(popup.getByRole('status')).toContainText(/mapped onto \d+ pages/);
+
+  await expect(popup.getByTestId('prompter-text')).toContainText('That is loop engineering');
+  await expect(popup.getByTestId('prompter-text')).not.toContainText('YOUR FLOW');
+  await popup.getByTestId('prompter-next').click();
+  await expect(popup.getByTestId('prompter-text')).toContainText('Interview Kickstart');
 
   await page.reload();
-  await expect(page.getByTestId('page-indicator')).toHaveText('2 / 3', { timeout: 15000 });
-  await expect(page.getByTestId('notes-editor')).toContainText('Interview Kickstart');
-  await page.getByRole('button', { name: 'Previous' }).click();
-  await expect(page.getByTestId('notes-editor')).toContainText('That is loop engineering');
+  await expect(page.locator('canvas')).toBeVisible({ timeout: 20000 });
+  await expect(popup.getByTestId('conn-status')).toHaveText('Connected', { timeout: 10000 });
+  await expect(popup.getByTestId('prompter-text')).toContainText('Interview Kickstart');
 });

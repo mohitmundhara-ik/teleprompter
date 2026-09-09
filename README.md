@@ -40,10 +40,15 @@ No environment variables are needed, so there is no `.env.example`.
 
 ## Quick start
 
-1. Drop a PDF, PPTX, DOCX, image, video, audio, TXT or MD file on the window.
-2. Type your talk track in the right panel, or press `Import` and load a `.txt`
-   or `.md` you already wrote. Any of these labels is recognised, on a line of
-   its own:
+1. Drop a deck anywhere in the window, or press `O`.
+2. Triple-click the slide. The teleprompter opens in its own window: script,
+   Prev and Next, reading controls, import and export, all of it.
+3. Share this browser tab in Zoom or Meet. The slide window has no toolbar, no
+   notes panel and no messages; every control lives in the teleprompter, which a
+   tab share never includes. `F` fills the monitor.
+4. Label a long script with lines like `--- Slide 2 ---` and the teleprompter
+   maps it onto the pages by itself. Any of these labels work, on a line of
+   their own:
 
    ```
    Slide 4              SLIDE 4 - TITLE        Slide 4: title
@@ -52,23 +57,11 @@ No environment variables are needed, so there is no `.env.example`.
    Before slide 1       After slide 28
    ```
 
-   An imported script is mapped onto the pages straight away: each page gets
-   only its own section, ranges fill every page they cover, `before slide 4`
-   and `after slide 4` join page 4, and separator rules such as `=======` and
-   any header above the first marker are dropped. `Slide notes` shows one page
-   at a time, `Full script` shows the whole thing and scrolls itself to the
-   slide you are on.
-3. Triple-click the slide. You can do this before loading anything, so you can
-   write the script first and bring the deck in later. The teleprompter opens in its own window: drag it to
-   a second monitor, or park it under your webcam and size it down to a strip.
-4. Press `Present`, or `P`. The slide fills the tab and nothing else is drawn:
-   no toolbar, no notes panel, no controls, no messages, not even a cursor. In
-   Zoom or Meet choose `Share`, then this browser tab, and the audience sees the
-   slide alone. Present asks the browser for real full screen, so the tab fills
-   the monitor and there is no address bar or tab strip on screen either.
-5. Drive it from the teleprompter window, which is a separate window and never
-   part of the shared tab, or with the arrow keys. `Escape` leaves presenting.
-6. `Next` and `Prev` work in either window. Both stay in step.
+## Keys, since the slide window has no buttons
+
+`→` next, `←` previous, `T` teleprompter, `O` open a file, `N` new session,
+`S` sessions, `,` settings, `F` full screen, `D` dark and light, `?` the full
+list. See `docs/SHORTCUTS.md`.
 
 ## Scripts
 

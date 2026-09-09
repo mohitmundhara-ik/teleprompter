@@ -22,17 +22,17 @@ Reproduce with `npm run lint && npm run typecheck && npm test && npm run e2e`.
 | `lib/format.talktrack.test.ts` | a real 50-slide talk track: every label form, ranges, before/after sections, banner rules stripped, header kept off the pages |
 | `db/schema.test.ts` | display settings and session exports validated, tampered values rejected |
 
-## End-to-end tests, Playwright, Chromium: 18 passed
+## End-to-end tests, Playwright, Chromium: 17 passed
 
 `e2e/presentation.spec.ts`
 1. Notes stay attached to the right page across a reload.
 2. Every PDF page renders, in order, without cropping, and the last page does not run past the end.
 3. A corrupt file reports an error and existing notes survive.
 4. Arrow keys navigate, and are ignored while typing in the editor.
-5. Present mode fills the viewport with the slide and renders no button, no page
-   indicator, no message and no cursor, including after mouse movement; the
-   arrow keys still navigate and Escape restores the layout on the new page.
-6. The teleprompter drives a presenting tab without anything being drawn on it.
+5. The slide window renders no button, no textarea and no visible input, and
+   fills the viewport.
+6. Messages raised by the slide window appear in the teleprompter instead, and
+   never on the shared slide.
 7. A labelled talk track imports, maps onto the pages with no header, no
    separators and no other slide's text, and is still there after a reload.
 

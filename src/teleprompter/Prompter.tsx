@@ -5,12 +5,14 @@ import { useAutoScroll } from './useAutoScroll';
 import { isTyping } from '../lib/shortcuts';
 import { blockCoversSlide, parseScriptBlocks, scriptForSlide } from '../lib/format';
 import { Toasts } from '../components/Toasts';
+import { ScriptTools } from './ScriptTools';
 
 export default function Prompter({ sessionId }: { sessionId: string }) {
   const s = useStore();
   const { init, display, setDisplay, step, index, notes, script, meta, connected, peerEverSeen, setNote, setScript, sendMedia } = s;
   const [editing, setEditing] = useState(false);
   const [narrow, setNarrow] = useState(window.innerWidth < 420);
+  const [tools, setTools] = useState(false);
   const boot = useRef(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
 
@@ -129,8 +131,11 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
 
       {!display.controlsHidden ? (
         <div className="flex shrink-0 flex-wrap items-center gap-1 border-b px-2 py-1.5" style={{ borderColor: 'rgb(128 128 128 / 0.3)' }}>
-          <Tool onClick={() => setDisplay({ source: display.source === 'notes' ? 'script' : 'notes' })}>
-            {display.source === 'notes' ? 'Slide notes' : 'Full script'}
+          <Tool onClick={() => setDisplay({ source: 'notes' })} active={display.source === 'notes'}>
+            Slide notes
+          </Tool>
+          <Tool onClick={() => setDisplay({ source: 'script' })} active={display.source === 'script'}>
+            Full script
           </Tool>
           <Tool onClick={() => setEditing(!editing)} active={editing}>{editing ? 'Done' : 'Edit'}</Tool>
           <Tool onClick={() => setRunning(!running)} active={running}>{running ? 'Pause' : 'Scroll'}</Tool>
@@ -189,9 +194,12 @@ export default function Prompter({ sessionId }: { sessionId: string }) {
               <Tool onClick={() => setDisplay({ fontSize: 30, lineHeight: 1.55, columnWidth: 92, align: 'left', mirrorX: false, mirrorY: false, guideOffset: 0, scrollSpeed: 40 })}>Reset</Tool>
             </>
           ) : null}
+          <Tool onClick={() => setTools(!tools)} active={tools} title="Import, map and export the script">Script tools</Tool>
           <Tool onClick={() => setDisplay({ controlsHidden: true })} label="Hide controls">Hide</Tool>
         </div>
       ) : null}
+
+      {tools && !display.controlsHidden ? <ScriptTools onDone={() => setTools(false)} /> : null}
 
       {meta.kind === 'video' || meta.kind === 'audio' ? (
         <div className="flex shrink-0 flex-wrap items-center gap-1 border-b px-2 py-1.5" style={{ borderColor: 'rgb(128 128 128 / 0.3)' }} data-testid="media-controls">

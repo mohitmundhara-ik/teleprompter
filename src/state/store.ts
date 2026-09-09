@@ -207,6 +207,13 @@ export const useStore = create<State>((set, get) => ({
   },
 
   toast(text, tone = 'info') {
+    // The slide window is the one being shared, so messages are handed to the
+    // teleprompter whenever it is open and shown here only as a fallback.
+    const { role, bus, connected } = get();
+    if (role === 'main' && connected && bus) {
+      bus.post({ t: 'toast', text, tone });
+      return;
+    }
     const id = toastSeq++;
     set((s) => ({ toasts: [...s.toasts, { id, text, tone }] }));
     setTimeout(() => get().dismissToast(id), tone === 'error' ? 9000 : 5000);
@@ -344,6 +351,10 @@ function applyRemote(p: Payload, set: (partial: Partial<State> | ((s: State) => 
       else if (p.action === 'rate') c.rate(p.value ?? 1);
       break;
     }
+    case 'toast':
+      // Only the teleprompter displays forwarded messages.
+      if (get().role === 'prompter') get().toast(p.text, p.tone);
+      break;
     case 'state-request': {
       const s = get();
       if (s.role !== 'main') break;

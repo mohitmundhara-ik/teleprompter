@@ -5,15 +5,15 @@
 ```
 src/
   main.tsx              entry; picks the main app or the teleprompter by query string
-  App.tsx               main window shell: import, canvas, notes, screen share, keys
+  App.tsx               the slide window: import, canvas, keys, nothing visible
   types.ts              domain types shared by both windows
   adapters/             one module per file format, loaded on demand
     index.ts            registry: file -> LoadedDocument, plus the supported matrix
     pdf.ts pdfRuntime.ts  PDF.js document handling and page rendering
     pptx.ts pptxVisual.ts  PPTX package reading, and the slide renderer
     docx.ts simple.ts
-  components/           Toolbar, Canvas, NotesPanel, DropZone, Sessions, Settings, ...
-  teleprompter/         Prompter.tsx and the auto-scroll hook
+  components/           Canvas, Sessions, Settings, Toasts, ProgressOverlay
+  teleprompter/         Prompter.tsx, ScriptTools.tsx, the auto-scroll hook
   state/store.ts        one Zustand store per window, plus remote message handling
   sync/                 protocol.ts, transports.ts, bus.ts
   db/                   db.ts (Dexie) and schema.ts (Zod validation)
@@ -146,6 +146,16 @@ form fields and media, and inside selectable document text where triple-click is
 the browser's own select-paragraph gesture. On a slide, where a triple click
 selects nothing meaningful, the accidental selection is cleared and the
 teleprompter opens.
+
+## Two surfaces
+
+The slide window draws the slide and nothing else, because it is the window that
+gets shared: no toolbar, no notes panel, no status messages, and messages raised
+while a teleprompter is connected are forwarded to it over the bus instead of
+being shown. Everything a presenter needs lives either on the keyboard or in the
+teleprompter window: navigation, the script, import, mapping, export, reading
+settings. Sessions and Settings open as modals from the keyboard, deliberately,
+since they are used before a session starts rather than during one.
 
 ## Present mode
 

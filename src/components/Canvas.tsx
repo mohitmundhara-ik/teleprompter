@@ -57,7 +57,7 @@ function PageView({ page, zoom }: { page: Page; zoom: ZoomMode }) {
       );
     case 'text':
       return (
-        <article data-selectable className="mx-auto max-h-full w-full max-w-[900px] overflow-auto pd-scroll rounded-lg border border-[var(--line)] bg-[var(--surface)] p-10">
+        <article className="mx-auto max-h-full w-full max-w-[900px] overflow-auto pd-scroll rounded-lg border border-[var(--line)] bg-[var(--surface)] p-10">
           <h2 className="mb-5 text-2xl font-semibold tracking-tight">{page.render.title}</h2>
           {page.render.body.map((line, i) => (
             <p key={i} className="mb-2.5 max-w-[68ch] text-[15px] leading-relaxed text-[var(--ink-2)]">
@@ -181,7 +181,6 @@ function SlidePage({ html, width, height, zoom }: { html: string; width: number;
         className="shadow-[var(--shadow)]"
       >
         <div
-          data-selectable
           style={{ width, height, transform: `scale(${scale})`, transformOrigin: 'top left' }}
           dangerouslySetInnerHTML={{ __html: html }}
         />

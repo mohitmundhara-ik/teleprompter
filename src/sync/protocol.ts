@@ -7,6 +7,7 @@ export type Payload =
   | { t: 'note'; index: number; text: string; rev: number }
   | { t: 'display'; value: unknown }
   | { t: 'media'; action: 'play' | 'pause' | 'seek' | 'rate'; value?: number }
+  | { t: 'toast'; text: string; tone: 'info' | 'error' | 'warn' }
   | { t: 'hello'; role: Role }
   | { t: 'state-request' }
   | { t: 'heartbeat'; role: Role }
